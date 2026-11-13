@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>הלב של ליה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#fff; --panel:rgba(20,16,40,.78); --gold:#ffd43b; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
+  html,body { margin:0; height:100%; overflow:hidden; font-family:'Rubik',system-ui,sans-serif; color:var(--ink);
+    background: radial-gradient(ellipse at 50% 35%, #3a1d4f 0%, #1a1233 45%, #0b0a1c 100%); }
+  canvas#c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  #bubbles { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+  #bubbles i { position:absolute; bottom:-30px; border-radius:50%; background:rgba(255,120,150,.08); animation: rise linear infinite; }
+  @keyframes rise { to { transform: translateY(-115vh); } }
+
+  header { position:fixed; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between;
+    padding: max(10px, env(safe-area-inset-top)) 12px 8px; pointer-events:none; z-index:5; }
+  header h1 { margin:0; font-size:clamp(20px,5vw,30px); font-weight:900; text-shadow:0 2px 12px #000a; pointer-events:auto; }
+  header h1 .beat { display:inline-block; animation: hb 1s infinite; }
+  @keyframes hb { 0%,100%{transform:scale(1)} 15%{transform:scale(1.25)} 30%{transform:scale(1)} 45%{transform:scale(1.15)} }
+  .topbtns { display:flex; gap:8px; pointer-events:auto; }
+  .chip { border:0; border-radius:999px; background:var(--panel); color:#fff; font:700 18px Rubik; padding:8px 14px;
+    display:flex; align-items:center; gap:6px; backdrop-filter: blur(6px); box-shadow:0 4px 16px #0006; cursor:pointer; }
+  .chip.stars { background: linear-gradient(135deg,#ffb703,#fb8500); color:#3b1d00; font-size:20px; }
+  .chip:active { transform:scale(.94); }
+
+  #tools { position:fixed; bottom:0; left:0; right:0; display:flex; gap:10px; overflow-x:auto; padding:10px 12px max(12px, env(safe-area-inset-bottom));
+    z-index:5; scrollbar-width:none; justify-content:safe center; }
+  #tools::-webkit-scrollbar { display:none; }
+  #tools { justify-content:center; overflow:visible; }
+  .grp { flex:0 0 auto; width:70px; border:0; background:none; color:#fff; font:700 13px Rubik; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:0; position:relative; }
+  .grp .ic { width:58px; height:58px; border-radius:50%; display:grid; place-items:center; font-size:29px; background:var(--panel); box-shadow:0 4px 14px #0007, inset 0 0 0 2px rgba(255,255,255,.12); transition:.2s; }
+  .grp.open .ic { background:linear-gradient(135deg,#8b5cf6,#6d28d9); box-shadow:0 0 0 3px #e9d5ff, 0 6px 22px #8b5cf688; transform:translateY(-3px); }
+  .grp.has-on::after { content:''; position:absolute; top:2px; right:10px; width:13px; height:13px; border-radius:50%; background:#ff5d8f; box-shadow:0 0 0 2px #fff; }
+  .grp span { text-shadow:0 1px 6px #000; white-space:nowrap; }
+  .grp:active .ic { transform:scale(.9); }
+  #tray { position:fixed; left:50%; bottom:calc(max(12px, env(safe-area-inset-bottom)) + 92px); transform:translateX(-50%) translateY(14px); display:flex; gap:10px; padding:10px 12px;
+    background:rgba(24,18,48,.88); backdrop-filter:blur(8px); border-radius:24px; z-index:6; opacity:0; pointer-events:none; transition:.25s; box-shadow:0 10px 30px #000a, inset 0 0 0 2px #ffffff1c; max-width:96vw; }
+  #tray.show { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+  #tray .tool { display:none; } #tray .tool.vis { display:flex; }
+  .tool { flex:0 0 auto; width:76px; border:0; background:none; color:#fff; font:700 13px Rubik; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:0; }
+  .tool .ic { width:60px; height:60px; border-radius:50%; display:grid; place-items:center; font-size:30px;
+    background:var(--panel); box-shadow:0 4px 14px #0007, inset 0 0 0 2px rgba(255,255,255,.12); transition:.2s; }
+  .tool.on .ic { background: linear-gradient(135deg,#ff5d8f,#c9184a); box-shadow:0 0 0 3px #ffd6e0, 0 6px 22px #ff3c7a88; }
+  .tool:active .ic { transform:scale(.9); }
+  .tool span { text-shadow:0 1px 6px #000; white-space:nowrap; }
+  @media (max-width:560px) { .tool { width:auto; font-size:11.5px; } .tool .ic { width:48px; height:48px; font-size:24px; } #tools { gap:4px; padding-top:6px; } .grp { width:64px; font-size:12px; } .grp .ic { width:52px; height:52px; font-size:26px; } .tool { width:62px; font-size:11.5px; } .tool .ic { width:50px; height:50px; font-size:25px; } #tray { gap:4px; padding:8px; bottom:calc(max(12px, env(safe-area-inset-bottom)) + 84px); }
+    #ctrl { bottom:128px; } #ridebar, #exitbtn, #drum { bottom:140px !important; } header h1 { font-size:20px; } .chip { padding:6px 10px; font-size:16px; } .chip.stars { font-size:16px; } }
+
+  #bubble { position:fixed; left:50%; top:calc(max(10px, env(safe-area-inset-top)) + 52px); transform:translateX(-50%) translateY(-12px); width:min(94vw,600px);
+    background:rgba(255,255,255,.93); color:#2b1340; border-radius:18px; padding:8px 14px 8px 50px; font:500 clamp(14px,3.6vw,18px)/1.35 Rubik;
+    box-shadow:0 8px 28px #0007; opacity:0; transition:.3s; z-index:6; pointer-events:none; cursor:pointer; }
+  #bubble.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #bubble b { color:#c9184a; font-weight:900; display:block; font-size:1.05em; }
+  #bubble #bText { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #bubble.open #bText { -webkit-line-clamp:unset; display:block; }
+  #bubble .say { position:absolute; left:8px; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:0;
+    background:#ffe3ec; font-size:18px; cursor:pointer; }
+
+  .pop { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.9); opacity:0; pointer-events:none; transition:.25s;
+    width:min(94vw,560px); max-height:80vh; overflow:auto; background:#1f1640f2; border-radius:26px; padding:18px; z-index:10;
+    box-shadow:0 20px 60px #000c, inset 0 0 0 2px #ffffff22; }
+  .pop.show { opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
+  .pop h2 { margin:0 0 12px; font-size:24px; font-weight:900; text-align:center; }
+  .pop .close { position:absolute; top:10px; left:12px; width:42px; height:42px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:22px; cursor:pointer; }
+  .rooms { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .room { border:0; border-radius:20px; padding:16px 10px; color:#fff; font:900 19px Rubik; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .room small { font-weight:500; font-size:14px; opacity:.9; }
+  .room.blue { background:linear-gradient(160deg,#4c6ef5,#364fc7); } .room.red { background:linear-gradient(160deg,#f03e3e,#c92a2a); }
+  .room .e { font-size:34px; }
+  .rooms .note { grid-column:1/-1; text-align:center; font-size:15px; opacity:.8; }
+
+  .mission { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:16px; background:#ffffff12; margin-bottom:8px; cursor:pointer; }
+  .mission .e { font-size:28px; width:36px; text-align:center; }
+  .mission .t { flex:1; font-size:17px; font-weight:500; line-height:1.3; }
+  .mission .s { font-size:26px; filter:grayscale(1) opacity(.35); }
+  .mission.done { background:#ffd43b22; } .mission.done .s { filter:none; }
+  .mission .go { border:0; border-radius:12px; background:#ff5d8f; color:#fff; font:700 15px Rubik; padding:8px 10px; cursor:pointer; }
+  .progress { height:14px; background:#ffffff22; border-radius:99px; overflow:hidden; margin:4px 0 14px; }
+  .progress i { display:block; height:100%; background:linear-gradient(90deg,#ffd43b,#fb8500); width:0; transition:.6s; }
+
+  .quiz .q { font-size:21px; font-weight:700; text-align:center; margin:6px 0 16px; line-height:1.4; }
+  .quiz .opts { display:grid; gap:10px; }
+  .quiz .opt { border:0; border-radius:18px; padding:14px; font:700 20px Rubik; background:#ffffff1c; color:#fff; cursor:pointer; display:flex; align-items:center; gap:12px; justify-content:center; }
+  .quiz .opt .e { font-size:30px; }
+  .quiz .opt.good { background:#2f9e44; } .quiz .opt.bad { background:#c92a2a; animation: shake .4s; }
+  @keyframes shake { 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+  #ctrl { position:fixed; left:50%; bottom:108px; transform:translateX(-50%) translateY(30px); width:min(96vw,520px); max-height:min(56vh,520px); overflow:auto;
+    background:rgba(24,18,48,.9); backdrop-filter:blur(8px); border-radius:24px; padding:12px 16px 14px; z-index:7; opacity:0; pointer-events:none; transition:.3s;
+    box-shadow:0 14px 40px #000a, inset 0 0 0 2px #ffffff1c; }
+  #ctrl.show { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+  #ctrl .head { display:flex; justify-content:space-between; align-items:center; font-size:20px; margin-bottom:4px; }
+  #ctrl .head button { width:38px; height:38px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:18px; cursor:pointer; }
+  #ctrl .sec { background:#ffffff10; border-radius:16px; padding:10px 12px; margin-top:10px; }
+  #ctrl .lbl { font:700 18px Rubik; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  #ctrl .lbl .num { font:900 26px Rubik; color:#ffd43b; min-width:44px; text-align:center; }
+  #ctrl .lbl2 { font:500 15px Rubik; opacity:.85; margin-top:6px; }
+  #ctrl .row { display:flex; align-items:center; gap:10px; margin-top:6px; }
+  #ctrl .quick { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  #ctrl .quick.four { grid-template-columns:repeat(4,1fr); }
+  #ctrl .quick button, #ctrl .sbtn { border:0; border-radius:14px; background:#ffffff1f; color:#fff; font:700 15px Rubik; padding:9px 6px; cursor:pointer; }
+  #ctrl .quick button.on, #ctrl .sbtn.on { background:#ff5d8f; }
+  #ctrl .quick .rb { background:#364fc7; } #ctrl .quick .rr { background:#c92a2a; }
+  #ctrl .sbtn { min-width:56px; font-size:20px; }
+  #ctrl input[type=range] { flex:1; width:100%; height:34px; accent-color:#ff5d8f; }
+
+  #ridebar { position:fixed; top:auto; bottom:170px; left:50%; transform:translateX(-50%); width:min(92vw,560px); display:none; z-index:6;
+    background:var(--panel); border-radius:999px; padding:8px 14px; align-items:center; gap:10px; }
+  #ridebar.show { display:flex; }
+  #ridebar .col { flex:1; display:flex; flex-direction:column; gap:6px; }
+  #ridebar .stage { font:700 16px Rubik; text-align:center; }
+  #ridebar .stop.alt { background:#ffffff26; font-size:18px; padding:6px 10px; }
+  #ecgBox { position:fixed; left:12px; bottom:118px; width:min(64vw,300px); background:rgba(6,20,14,.86); border-radius:16px; padding:6px 8px 6px; z-index:6;
+    box-shadow:0 6px 20px #0008, inset 0 0 0 2px #2bd47a44; display:none; }
+  #ecgBox.show { display:block; }
+  #ecgBox canvas { width:100%; height:auto; display:block; }
+  #ecgBox .ecgInfo { position:absolute; top:6px; right:10px; font:900 20px Rubik; color:#5dff9f; text-shadow:0 0 8px #2bd47a; }
+  #ecgBox .ecgInfo small { font:500 11px Rubik; }
+  #ecgCap { font:700 14px Rubik; color:#d3ffe4; min-height:18px; text-align:center; }
+  .tool.hint .ic { animation: hintp .7s ease-in-out 6; box-shadow:0 0 0 4px #ffd43b, 0 0 26px #ffd43b; }
+  @keyframes hintp { 50% { transform:scale(1.18); } }
+  #ridebar .track { flex:1; height:12px; border-radius:99px; background:linear-gradient(270deg,#4c6ef5 0%,#4c6ef5 38%,#f03e3e 52%,#f03e3e 100%); position:relative; }
+  #ridebar .dot { position:absolute; top:50%; width:24px; height:24px; margin-top:-12px; border-radius:50%; background:#fff; box-shadow:0 0 12px #fff; right:0; transform:translateX(50%); font-size:15px; display:grid; place-items:center; }
+  #ridebar .stop, #exitbtn { border:0; border-radius:999px; background:#ff5d8f; color:#fff; font:700 16px Rubik; padding:8px 14px; cursor:pointer; }
+  #exitbtn { position:fixed; top:auto; bottom:170px; left:50%; transform:translateX(-50%); z-index:6; display:none; font-size:19px; padding:10px 20px; box-shadow:0 6px 20px #0008; }
+  #exitbtn.show { display:block; }
+  #drum { position:fixed; top:auto; bottom:170px; left:50%; transform:translateX(-50%); z-index:6; display:none; background:var(--panel); border-radius:20px; padding:10px 18px; font:700 20px Rubik; text-align:center; }
+  #drum.show { display:block; }
+  #drum .n { font-size:30px; letter-spacing:4px; }
+
+  #start { position:fixed; inset:0; z-index:20; display:grid; place-items:center; background: radial-gradient(ellipse at center, #4a1f5ee6, #0b0a1cf5); transition: opacity .6s; }
+  #start.hide { opacity:0; pointer-events:none; }
+  #start .card { text-align:center; padding:20px; }
+  #start .big { font-size:110px; animation: hb 1.1s infinite; display:inline-block; filter: drop-shadow(0 0 30px #ff3c7a); }
+  #start h2 { font-size:clamp(30px,8vw,48px); margin:10px 0 6px; font-weight:900; }
+  #start p { font-size:20px; opacity:.85; margin:0 0 24px; }
+  #start button { border:0; border-radius:999px; font:900 26px Rubik; padding:18px 44px; background:linear-gradient(135deg,#ff5d8f,#c9184a); color:#fff; box-shadow:0 10px 30px #c9184a88; cursor:pointer; }
+  #start button:disabled { opacity:.5; }
+  #start .load { margin-top:16px; font-size:16px; opacity:.7; min-height:20px; }
+
+  #toast { position:fixed; top:40%; left:50%; transform:translate(-50%,-50%) scale(.3); font-size:120px; opacity:0; z-index:15; pointer-events:none; transition: .5s cubic-bezier(.2,1.6,.4,1); text-align:center; }
+  #toast.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  #toast div { font:900 28px Rubik; text-shadow:0 2px 12px #000; }
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:14; }
+  #credit { font-size:13px; opacity:.75; line-height:1.5; text-align:center; margin-top:12px; }
+  #credit a { color:#ffd6e0; }
+</style>
+</head>
+<body>
+<div id="bubbles"></div>
+<canvas id="c"></canvas>
+<canvas id="confetti"></canvas>
+
+<header>
+  <h1><span class="beat">❤️</span> הלב של ליה</h1>
+  <div class="topbtns">
+    <button class="chip" id="fsBtn" title="מסך מלא">⛶</button>
+    <button class="chip" id="muteBtn" title="קול">🔊</button>
+    <button class="chip" id="homeBtn" title="חזרה">🏠</button>
+    <button class="chip stars" id="starsBtn">⭐ <span id="starCount">0</span></button>
+  </div>
+</header>
+
+<div id="bubble"><button class="say" id="sayAgain">🔈</button><b id="bTitle"></b><span id="bText"></span></div>
+
+<div id="ctrl">
+  <div class="head"><b>🎛️ לוח השליטה של הלב</b><button id="ctrlClose">✕</button></div>
+  <div class="sec">
+    <div class="lbl">💓 דופק <span class="num" id="bpmVal">85</span> פעימות בדקה <span id="bpmEmo" style="font-size:26px">🚶‍♀️</span></div>
+    <div class="row"><button class="sbtn on" id="beatToggle" title="לעצור / להפעיל">⏸️</button><input type="range" id="bpm" min="40" max="180" step="1" value="85"></div>
+    <div class="row quick"><button class="sbtn" id="slowBtn" style="grid-column:1/-1;font-size:16px">🐌 הילוך איטי</button></div>
+    <div class="row quick"><button data-b="55">😴 ישנה</button><button data-b="85" class="on">🚶‍♀️ הולכת</button><button data-b="150">🏃‍♀️ רצה</button></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">👻 כמה שקוף הלב</div>
+    <div class="row"><span>🧱</span><input type="range" id="glass" min="0" max="1" step="0.05" value="0"><span>🫧</span></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">💪 כמה חזק הלב נלחץ</div>
+    <div class="row"><span>🤏</span><input type="range" id="amp" min="0.2" max="3" step="0.1" value="1"><span>💪</span></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">🩸 הדם <button class="sbtn" id="flowToggle" style="font-size:15px;min-width:80px">להציג</button></div>
+    <div class="lbl2">מהירות הדם</div>
+    <div class="row"><span>🐢</span><input type="range" id="fspeed" min="0.2" max="3" step="0.1" value="1"><span>🐇</span></div>
+    <div class="lbl2">כמה תאי דם</div>
+    <div class="row"><span>·</span><input type="range" id="fcount" min="30" max="600" step="10" value="300"><span>⁘</span></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">👀 להציץ לתוך החדרים</div>
+    <div class="row quick four"><button class="rb" data-room="RA">🔵⬆️<br>פרוזדור ימני</button><button class="rb" data-room="RV">🔵⬇️<br>חדר ימני</button><button class="rr" data-room="LA">🔴⬆️<br>פרוזדור שמאלי</button><button class="rr" data-room="LV">🔴⬇️<br>חדר שמאלי</button></div>
+  </div>
+</div>
+
+<div id="ridebar"><div class="col"><div class="stage" id="rideStage">📍</div><div class="track"><div class="dot" id="rideDot">🔴</div></div></div><button class="stop alt" id="rideCam" title="מבט">🎥</button><button class="stop" id="rideStop">עצירה</button></div>
+<div id="ecgBox"><canvas id="ecg" width="520" height="150"></canvas><div class="ecgInfo"><span id="ecgBpm">85</span> ❤️ <small>פעימות בדקה</small></div><div id="ecgCap"></div></div>
+<button id="exitbtn">⬅️ לצאת מהלב</button>
+<div id="drum"><div>תופפי עם הלב! 🥁</div><div class="n" id="drumN">○○○○○○</div></div>
+
+<div id="tray">
+    <button class="tool" data-t="xray" data-g="look"><div class="ic">👻</div><span>שקוף</span></button>
+    <button class="tool" data-t="cut" data-g="look"><div class="ic">✂️</div><span>לחתוך</span></button>
+    <button class="tool" data-t="rooms" data-g="look"><div class="ic">🚪</div><span>להיכנס</span></button>
+    <button class="tool" data-t="fist" data-g="look"><div class="ic">✊</div><span>אגרוף</span></button>
+    <button class="tool" data-t="icon" data-g="look"><div class="ic">🩷</div><span>לב אימוג'י</span></button>
+    <button class="tool" data-t="ctrl" data-g="beat"><div class="ic">🎛️</div><span>שליטה</span></button>
+    <button class="tool" data-t="slowbeat" data-g="beat"><div class="ic">🔬</div><span>פעימה איטית</span></button>
+    <button class="tool" data-t="elec" data-g="beat"><div class="ic">⚡</div><span>חשמל הלב</span></button>
+    <button class="tool" data-t="flow" data-g="blood"><div class="ic">🩸</div><span>זרימת דם</span></button>
+    <button class="tool" data-t="ride" data-g="blood"><div class="ic">🚀</div><span>מסע בדם</span></button>
+    <button class="tool" data-t="lungs" data-g="breath"><div class="ic">🫁</div><span>ריאות</span></button>
+    <button class="tool" data-t="alv" data-g="breath"><div class="ic">🫧</div><span>בועיות</span></button>
+    <button class="tool" data-t="missions" data-g="play"><div class="ic">🎯</div><span>משימות</span></button>
+    <button class="tool" data-t="fact" data-g="play"><div class="ic">💡</div><span>הידעת?</span></button>
+</div>
+<nav id="tools">
+  <button class="grp" data-g="look"><div class="ic">👀</div><span>להסתכל</span></button>
+  <button class="grp" data-g="beat"><div class="ic">💓</div><span>הדופק</span></button>
+  <button class="grp" data-g="blood"><div class="ic">🩸</div><span>הדם</span></button>
+  <button class="grp" data-g="breath"><div class="ic">🫁</div><span>נשימה</span></button>
+  <button class="grp" data-g="play"><div class="ic">🎯</div><span>משחקים</span></button>
+</nav>
+
+<div class="pop" id="roomsPop">
+  <button class="close" data-close>✕</button>
+  <h2>לאיזה חדר נכנסים? 🚪</h2>
+  <div class="rooms">
+    <button class="room blue" data-room="RA"><span class="e">🔵⬆️</span>פרוזדור ימני<small>לכאן מגיע הדם מהגוף</small></button>
+    <button class="room red" data-room="LA"><span class="e">🔴⬆️</span>פרוזדור שמאלי<small>לכאן מגיע הדם מהריאות</small></button>
+    <button class="room blue" data-room="RV"><span class="e">🔵⬇️</span>חדר ימני<small>שולח דם לריאות</small></button>
+    <button class="room red" data-room="LV"><span class="e">🔴⬇️</span>חדר שמאלי<small>הכי חזק! שולח לכל הגוף</small></button>
+    <div class="note">ללב יש 4 חדרים: 2 למעלה (פרוזדורים) ו־2 למטה (חדרים)</div>
+  </div>
+</div>
+
+<div class="pop" id="missionsPop">
+  <button class="close" data-close>✕</button>
+  <h2>משימות של חוקרת לב ⭐</h2>
+  <div class="progress"><i id="progBar"></i></div>
+  <div id="missionList"></div>
+  <div id="credit">
+    המודל התלת־ממדי: <b>BodyParts3D</b> — מודל אנטומי אמיתי שנבנה מסריקת MRI של גוף אדם<br>
+    © The Database Center for Life Science, ברישיון CC BY-SA 2.1 JP<br>
+    <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>
+    · <button class="go" id="resetStars" style="border:0;border-radius:10px;background:#ffffff22;color:#fff;font:500 13px Rubik;padding:4px 8px;margin-top:8px;cursor:pointer">להתחיל את המשימות מחדש</button>
+  </div>
+</div>
+
+<div class="pop quiz" id="quizPop">
+  <button class="close" data-close>✕</button>
+  <h2>חידה! 🤔</h2>
+  <div class="q" id="quizQ"></div>
+  <div class="opts" id="quizOpts"></div>
+</div>
+
+<div id="toast">⭐<div id="toastText">כל הכבוד!</div></div>
+
+<div id="start"><div class="card">
+  <div class="big">❤️</div>
+  <h2>ליה, בואי לחקור את הלב!</h2>
+  <p>לב אמיתי של בן אדם — אפשר לסובב, להיכנס פנימה ולרכב על טיפת דם</p>
+  <button id="goBtn" disabled>יוצאים לדרך!</button>
+  <div class="load" id="loadMsg">טוענת את הלב…</div>
+</div></div>
+
+<script type="importmap">{"imports":{"three":"__THREE__/build/three.module.js","three/addons/":"__THREE__/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/*__MODULES__*/
+const DATA = __DATA__;
+const GLB_B64 = "__GLB__";
+
+// ---------------- helpers ----------------
+const $ = s => document.querySelector(s);
+const V = a => new THREE.Vector3(a[0], a[1], a[2]);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('lia-heart-' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('lia-heart-' + k, JSON.stringify(v)); } catch {} }
+};
+// floating background bubbles
+for (let i = 0; i < 18; i++) { const b = document.createElement('i'); const s = 6 + Math.random() * 26;
+  Object.assign(b.style, { left: Math.random() * 100 + '%', width: s + 'px', height: s + 'px', animationDuration: 14 + Math.random() * 20 + 's', animationDelay: -Math.random() * 30 + 's' });
+  $('#bubbles').appendChild(b); }
+
+// ---------------- speech ----------------
+let muted = store.get('muted', false);
+let heVoice = null;
+function pickVoice() { const vs = speechSynthesis.getVoices(); heVoice = vs.find(v => /^he|^iw/i.test(v.lang)) || null; }
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let lastSaid = [];
+const VOICES = {}/*VOICES*/;
+const cleanTxt = t => String(t || '').replace(/[\u{1F300}-\u{1FAFF}☀-➿️‍]/gu, '').replace(/\s+/g, ' ').trim();
+function vkey(t) { const c = cleanTxt(t); let h = 0x811c9dc5; for (let i = 0; i < c.length; i++) { h ^= c.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
+let curAudio = null, audioQueue = [];
+function stopVoice() { audioQueue = []; if (curAudio) { try { curAudio.pause(); } catch {} curAudio = null; } try { speechSynthesis.cancel(); } catch {} }
+function playNext() {
+  const src = audioQueue.shift(); if (!src) { curAudio = null; return; }
+  curAudio = new Audio(src); curAudio.onended = playNext; curAudio.onerror = playNext; curAudio.play().catch(playNext);
+}
+function speak(parts) {
+  parts = (Array.isArray(parts) ? parts : [parts]).map(cleanTxt).filter(Boolean);
+  lastSaid = parts; stopVoice();
+  if (muted || !parts.length) return;
+  if (parts.every(p => VOICES[vkey(p)])) { audioQueue = parts.map(p => VOICES[vkey(p)]); playNext(); return; }
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(parts.join('. '));
+    u.lang = 'he-IL'; if (heVoice) u.voice = heVoice; u.rate = 0.92; u.pitch = 1.08;
+    speechSynthesis.speak(u);
+  } catch {}
+}
+const speaking = () => !muted && (!!curAudio || ('speechSynthesis' in window && speechSynthesis.speaking));
+let bubbleTimer;
+function speakMore(t) { if (!muted) { const p = lastSaid.concat([t]); speak(p); } }
+function say(title, text, opts = {}) {
+  $('#bTitle').textContent = title || ''; $('#bText').textContent = text;
+  $('#bubble').classList.add('show');
+  clearTimeout(bubbleTimer);
+  $('#bubble').classList.remove('open');
+  bubbleTimer = setTimeout(() => $('#bubble').classList.remove('show'), opts.ms || Math.max(5000, text.length * 75));
+  if (!opts.silent) speak([title, text]);
+}
+$('#sayAgain').onclick = e => { e.stopPropagation(); speak(lastSaid); };
+$('#bubble').onclick = () => { const b = $('#bubble'); if (!b.classList.contains('open') && $('#bText').scrollHeight > $('#bText').clientHeight + 2) { b.classList.add('open'); clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => b.classList.remove('show'), 9000); } else b.classList.remove('show'); };
+$('#muteBtn').textContent = muted ? '🔇' : '🔊';
+$('#muteBtn').onclick = () => { muted = !muted; store.set('muted', muted); $('#muteBtn').textContent = muted ? '🔇' : '🔊'; if (muted) stopVoice(); };
+
+// ---------------- audio: heartbeat & chimes ----------------
+let actx = null;
+function audio() { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} } if (actx?.state === 'suspended') actx.resume(); return actx; }
+function thump(freq, dur, vol) {
+  const a = actx; if (!a || muted) return;
+  const t = a.currentTime, o = a.createOscillator(), g = a.createGain(), f = a.createBiquadFilter();
+  o.type = 'sine'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * 0.55, t + dur);
+  f.type = 'lowpass'; f.frequency.value = 180;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(f).connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function chime() {
+  const a = actx; if (!a || muted) return; const t = a.currentTime;
+  [784, 988, 1175, 1568].forEach((fr, i) => { const o = a.createOscillator(), g = a.createGain(); o.type = 'triangle'; o.frequency.value = fr;
+    g.gain.setValueAtTime(0.0001, t + i * 0.09); g.gain.exponentialRampToValueAtTime(0.18, t + i * 0.09 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.09 + 0.5);
+    o.connect(g).connect(a.destination); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.6); });
+}
+
+// ---------------- renderer / scene ----------------
+const canvas = $('#c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92;
+renderer.localClippingEnabled = true;
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.55;
+const camera = new THREE.PerspectiveCamera(40, 1, 0.02, 400);
+const HOME = { base: new THREE.Vector3(6, 3, 24), pos: new THREE.Vector3(6, 3, 24), target: new THREE.Vector3(0, 0.6, 0) };
+camera.position.copy(HOME.pos).multiplyScalar(1.6);
+scene.add(camera);
+const camLight = new THREE.PointLight(0xffe6e0, 0, 12, 1.5); camera.add(camLight);
+scene.add(new THREE.HemisphereLight(0xffeef2, 0x40202a, 0.6));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(8, 14, 12); scene.add(key);
+const rim = new THREE.DirectionalLight(0xff8fb0, 1.4); rim.position.set(-10, 4, -12); scene.add(rim);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.rotateSpeed = 0.8;
+controls.minDistance = 7; controls.maxDistance = 60; controls.target.copy(HOME.target); controls.enablePan = false;
+
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w < h ? 52 : 40; camera.updateProjectionMatrix();
+  const portrait = w < h; HOME.pos.copy(HOME.base).multiplyScalar(portrait ? Math.min(1.75, 0.85 * h / w) : 1);
+  HOME.target.set(0, portrait ? -1.6 : 0.6, 0); HOME.pos.y += portrait ? -1.6 : 0; }
+addEventListener('resize', resize); resize();
+
+// ---------------- materials ----------------
+const M = {
+  wall: new THREE.MeshPhysicalMaterial({ color: 0x8c1d22, roughness: 0.42, clearcoat: 0.85, clearcoatRoughness: 0.28, sheen: 0.6, sheenColor: new THREE.Color(0xff9a9a), sheenRoughness: 0.5, side: THREE.DoubleSide }),
+  artery: new THREE.MeshPhysicalMaterial({ color: 0xbe151c, roughness: 0.35, clearcoat: 0.9, clearcoatRoughness: 0.2, side: THREE.DoubleSide }),
+  vein: new THREE.MeshPhysicalMaterial({ color: 0x2244b0, roughness: 0.35, clearcoat: 0.9, clearcoatRoughness: 0.2, side: THREE.DoubleSide }),
+  coronary: new THREE.MeshPhysicalMaterial({ color: 0xc8202a, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.15 }),
+  coronaryvein: new THREE.MeshPhysicalMaterial({ color: 0x5b4fd6, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.15 }),
+  valve: new THREE.MeshPhysicalMaterial({ color: 0xf6e7cf, roughness: 0.5, clearcoat: 0.6, sheen: 0.4, sheenColor: new THREE.Color(0xffffff), side: THREE.DoubleSide }),
+  papillary: new THREE.MeshPhysicalMaterial({ color: 0xc4464a, roughness: 0.45, clearcoat: 0.7 }),
+  lung: new THREE.MeshPhysicalMaterial({ color: 0xf4a3b4, roughness: 0.6, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide }),
+};
+const PART = {
+  wall:        { mat: 'wall', group: 'heart', name: 'שריר הלב', text: 'זה השריר של הלב! הוא בגודל של האגרוף שלך ועובד כל הזמן — גם כשאת ישנה. הוא נלחץ ומשחרר, נלחץ ומשחרר, וככה דוחף את הדם.' },
+  tricuspid:   { mat: 'valve', group: 'heart', valve: true, name: 'המסתם התלת־צניפי — דלת ימנית', text: 'זאת דלת עם שלוש כנפיים בין שני החדרים הימניים. היא נפתחת רק לכיוון אחד, כדי שהדם לא יחזור אחורה! החוטים הדקים הם כמו חבלים שמחזיקים אותה.' },
+  mitral:      { mat: 'valve', group: 'heart', valve: true, name: 'המסתם המיטרלי — דלת שמאלית', text: 'הדלת בצד השמאלי של הלב, יש לה שתי כנפיים. כשהיא נסגרת — בום! זה חלק מהצליל של הלב שהרופא שומע.' },
+  pulmvalve:   { mat: 'valve', group: 'heart', valve: true, name: 'מסתם עורק הריאה', text: 'שלושה כיסים קטנים כמו מטריות. כשהדם יוצא הם נפתחים, ואז נסגרים — טק! — כדי שהדם לא יחזור ללב.' },
+  papillary:   { mat: 'papillary', group: 'heart', name: 'שרירים קטנים בתוך הלב', text: 'אלה השרירים הפפילריים. הם מושכים את החבלים של הדלתות, כדי שהדלתות לא ייפתחו הפוך.' },
+  coronaryart: { mat: 'coronary', group: 'heart', coronary: true, name: 'העורקים הכליליים', text: 'גם הלב צריך לאכול! הצינורות הקטנים האלה עוטפים את הלב כמו כתר, ומביאים לשריר הלב עצמו דם מלא חמצן.' },
+  icon:        { name: 'לב של אימוג׳י 🩷', text: 'ככה מציירים לב בציורים ובאימוג׳י — עגול ומתוק! אבל הלב האמיתי שבתוך הגוף נראה אחרת לגמרי, עם צינורות וחדרים. לחצי שוב על הכפתור 🩷 כדי לראות את הלב האמיתי.' },
+  coronaryvein:{ mat: 'coronaryvein', group: 'heart', coronary: true, name: 'ורידי הלב', text: 'הוורידים האלה אוספים את הדם העייף משריר הלב ומחזירים אותו פנימה.' },
+  aorta:       { mat: 'artery', group: 'vessel', name: 'אבי העורקים', text: 'הצינור הכי גדול בגוף! דרכו יוצא הדם האדום, מלא חמצן, מהחדר השמאלי — ומשם הוא מתחלק לכל הגוף, עד קצות האצבעות.' },
+  headarteries:{ mat: 'artery', group: 'vessel', name: 'עורקים לראש ולידיים', text: 'הצינורות האלה עולים למעלה — אל המוח והידיים. הם מביאים חמצן למוח שלך, כדי שתוכלי לחשוב, לצייר ולשחק.' },
+  svc:         { mat: 'vein', group: 'vessel', name: 'הווריד הנבוב העליון', text: 'הצינור הכחול הזה מביא דם עייף, בלי הרבה חמצן, מהראש ומהידיים — חזרה אל הלב.' },
+  ivc:         { mat: 'vein', group: 'vessel', name: 'הווריד הנבוב התחתון', text: 'הצינור הכחול הזה מביא דם עייף מהבטן ומהרגליים — חזרה אל הלב.' },
+  pulmart:     { mat: 'vein', group: 'vessel', name: 'עורקי הריאה', text: 'הענפים הכחולים לוקחים את הדם העייף מהלב אל הריאות, כדי שיקבל חמצן חדש. הם מתפצלים כמו עץ!' },
+  pulmvein:    { mat: 'artery', group: 'vessel', name: 'ורידי הריאה', text: 'הענפים האדומים מחזירים מהריאות דם טרי, מלא חמצן, אל הצד השמאלי של הלב.' },
+  lungs:       { mat: 'lung', group: 'lung', name: 'הריאות', text: 'הריאות הן כמו שני בלונים גדולים. כשאת נושמת, האוויר נכנס לכאן — והדם לוקח ממנו חמצן. הלב גר בדיוק באמצע, בין שתי הריאות.' },
+  trachea:     { mat: 'lung', group: 'lung', name: 'קנה הנשימה', text: 'הצינור שבו האוויר עובר מהאף ומהפה אל הריאות.' },
+};
+const ROOMS = {
+  RA: { name: 'הפרוזדור הימני', text: 'את בתוך הפרוזדור הימני! לכאן נכנס הדם הכחול והעייף מכל הגוף, דרך שני צינורות גדולים. למטה יש דלת — המסתם — שמובילה לחדר הימני.', look: 'tri' },
+  RV: { name: 'החדר הימני', text: 'את בחדר הימני! כשהוא נלחץ — וווש! — הוא דוחף את הדם הכחול למעלה, אל הריאות. רואה את החבלים של הדלת?', look: 'pulm' },
+  LA: { name: 'הפרוזדור השמאלי', text: 'את בפרוזדור השמאלי! לכאן מגיע הדם האדום והטרי מהריאות, דרך ארבעה צינורות קטנים.', look: 'mit' },
+  LV: { name: 'החדר השמאלי', text: 'וואו! זה החדר השמאלי — השריר הכי חזק בלב! הקירות שלו עבים במיוחד, כי הוא צריך לדחוף את הדם לכל הגוף — עד הבהונות!', look: 'aortic' },
+};
+
+// ---------------- state ----------------
+const S = { glass: 0, elec: false, slow: false, guide: null, fist: false, alv: null, brPh: 0, beat: true, bpm: 85, amp: 1, fspeed: 1, iconK: 0, iconT: 0, flow: false, xray: false, cut: 0, cutTarget: 0, lungs: false, inside: null, ride: null, drum: null };
+const meshes = {};
+const fresnelU = { value: 0 };
+// ---------------- living heart: shared deformation uniforms ----------------
+const HU = {
+  uB: { value: new THREE.Vector3() }, uAxis: { value: new THREE.Vector3(0, -1, 0) }, uL: { value: 8 },
+  uV: { value: 0 }, uAt: { value: 0 }, uAmp: { value: 1 }, uTime: { value: 0 }, uWob: { value: 0 },
+  uElec: { value: 0 }, uPhase: { value: 0 }, uSA: { value: new THREE.Vector3() }, uAVn: { value: new THREE.Vector3() },
+  uBr: { value: 0 }, uLR: { value: new THREE.Vector3(-8, 1, -2) }, uLL: { value: new THREE.Vector3(6, 1, -2) },
+};
+const GLSL_COMMON = `
+uniform vec3 uB; uniform vec3 uAxis; uniform float uL; uniform float uV; uniform float uAt; uniform float uAmp; uniform float uTime; uniform float uWob;
+uniform float uBr; uniform vec3 uLR; uniform vec3 uLL;
+uniform vec3 uVC; uniform vec3 uVA; uniform float uVT; uniform float uVOpen; uniform float uVKind;
+varying vec3 vRestW;
+vec3 rotAx(vec3 v, vec3 k, float a){ float c = cos(a), s = sin(a); return v*c + cross(k, v)*s + k*dot(k, v)*(1.0 - c); }
+vec3 heartDeform(vec3 p){
+  vec3 d = p - uB; float along = dot(d, uAxis); float h = along / uL;
+  vec3 r = d - uAxis * along;
+  float wv = smoothstep(-0.05, 0.3, h);
+  float wa = 1.0 - smoothstep(-0.3, 0.02, h);
+  float hl = clamp(h, 0.0, 1.0);
+  vec3 rr = rotAx(r, uAxis, uV * wv * 0.22 * hl * uAmp);
+  rr *= 1.0 - (uV * wv * 0.14 + uAt * wa * 0.12) * uAmp;
+  float wob = sin(uTime * 13.0 - h * 6.0 + dot(r, vec3(1.7, 0.9, 1.3)) * 0.8) * uWob * 0.035 * uAmp;
+  rr *= 1.0 + wob;
+  float na = along + uL * 0.08 * uV * uAmp * (1.0 - hl) * wv + wob * uL * 0.25 * hl;
+  return uB + uAxis * na + rr;
+}
+vec3 valveDeform(vec3 p){
+  if (uVKind < 0.5) return p;
+  vec3 d = p - uVC; float t = dot(d, uVA); vec3 r = d - uVA * t; float tn = t / uVT;
+  if (uVKind < 1.5) {               // AV valve (tricuspid / mitral): leaflets hang into the ventricle
+    float w = clamp(tn, 0.0, 1.0) * (1.0 - smoothstep(1.0, 2.0, tn));
+    return p + r * ((uVOpen - 0.5) * 1.1 * w) - uVA * (1.0 - uVOpen) * 0.45 * uVT * w;
+  }
+  float w = smoothstep(-0.8, 0.4, tn); // semilunar cusps
+  return p + r * (uVOpen * 0.6 * w) + uVA * uVOpen * 0.18 * uVT * w;
+}
+vec3 lungDeform(vec3 p){
+  float side = p.x < -0.5 ? 0.0 : 1.0;
+  vec3 c = mix(uLR, uLL, side);
+  float w = smoothstep(3.0, 7.0, abs(p.x + 0.5));
+  vec3 o = (p - c) * uBr * 0.075 * w;
+  o.y -= uBr * 0.9 * w * smoothstep(c.y + 2.0, c.y - 7.0, p.y);
+  return p + o;
+}`;
+const GLSL_ELEC = `
+uniform float uElec; uniform float uPhase; uniform vec3 uSA; uniform vec3 uAVn;
+vec3 elecGlow(vec3 p){
+  if (uElec < 0.5) return vec3(0.0);
+  vec3 d = p - uB; float h = dot(d, uAxis) / uL;
+  float g = 0.0;
+  float ds = distance(p, uSA);
+  g += exp(-pow(ds / 0.9, 2.0)) * (1.0 - smoothstep(0.0, 0.06, uPhase)) * 2.0;
+  if (uPhase < 0.13) g += exp(-pow((ds - uPhase / 0.11 * 9.0) / 0.9, 2.0)) * (1.0 - smoothstep(-0.25, 0.1, h));
+  if (uPhase > 0.08 && uPhase < 0.16) g += exp(-pow(distance(p, uAVn) / 0.8, 2.0)) * 1.5;
+  float fv = (uPhase - 0.14) / 0.11 * 1.2;
+  if (uPhase > 0.14 && uPhase < 0.3) g += exp(-pow((h - fv) / 0.12, 2.0)) * smoothstep(-0.05, 0.15, h);
+  return vec3(1.0, 0.85, 0.3) * g * 1.8;
+}`;
+function setupMat(mat, o) {
+  // o: { heart, lung, fresnel, elec, valve:{kind, c, a, t, open} }
+  const VU = { uVC: { value: o.valve ? o.valve.c : new THREE.Vector3() }, uVA: { value: o.valve ? o.valve.a : new THREE.Vector3(0, 1, 0) },
+               uVT: { value: o.valve ? o.valve.t : 1 }, uVOpen: o.valve ? o.valve.open : { value: 0 }, uVKind: { value: o.valve ? o.valve.kind : 0 } };
+  mat.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, HU, VU, { uFresnel: fresnelU });
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + GLSL_COMMON)
+      .replace('#include <project_vertex>', `
+        vec4 hwp = modelMatrix * vec4(transformed, 1.0);
+        vRestW = hwp.xyz;
+        ${o.valve ? 'hwp.xyz = valveDeform(hwp.xyz);' : ''}
+        ${o.heart ? 'hwp.xyz = heartDeform(hwp.xyz);' : ''}
+        ${o.lung ? 'hwp.xyz = lungDeform(hwp.xyz);' : ''}
+        vec4 mvPosition = viewMatrix * hwp;
+        gl_Position = projectionMatrix * mvPosition;`);
+    let fs = 'varying vec3 vRestW;\nuniform float uFresnel;\nuniform vec3 uB; uniform vec3 uAxis; uniform float uL;\n' + (o.elec ? GLSL_ELEC : '') + '\n' + sh.fragmentShader;
+    if (o.elec) fs = fs.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += elecGlow(vRestW);');
+    if (o.fresnel) fs = fs.replace('#include <opaque_fragment>', `#include <opaque_fragment>
+      float frim = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition)));
+      gl_FragColor.rgb += uFresnel * vec3(1.0, 0.45, 0.55) * pow(frim, 3.0) * 0.35;
+      gl_FragColor.a = mix(gl_FragColor.a, min(1.0, gl_FragColor.a + 0.75), uFresnel * pow(frim, 2.2));`);
+    sh.fragmentShader = fs;
+  };
+  const key = JSON.stringify({ h: !!o.heart, l: !!o.lung, f: !!o.fresnel, e: !!o.elec, v: o.valve ? o.valve.kind : 0, id: o.id || '' });
+  mat.customProgramCacheKey = () => key;
+}
+// JS mirror of lungDeform, so blood cells follow the breathing lungs
+function lungDeformJS(p) {
+  const side = p.x < -0.5 ? HU.uLR.value : HU.uLL.value, br = HU.uBr.value;
+  const w = THREE.MathUtils.smoothstep(Math.abs(p.x + 0.5), 3.0, 7.0); if (w <= 0 || br <= 0) return p;
+  const ox = (p.x - side.x) * br * 0.075 * w, oy = (p.y - side.y) * br * 0.075 * w, oz = (p.z - side.z) * br * 0.075 * w;
+  const t = THREE.MathUtils.clamp((p.y - (side.y + 2)) / ((side.y - 7) - (side.y + 2)), 0, 1); const sm = t * t * (3 - 2 * t);
+  p.x += ox; p.y += oy - br * 0.9 * w * sm; p.z += oz; return p;
+}
+const valveOpen = { tri: { value: 1 }, mit: { value: 1 }, pulm: { value: 0 } };
+let heartPivot, cells, rideCell, routes = [], ready = false, realGroup, iconHeart;
+
+// ---------------- load model ----------------
+function b64ToBuf(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+loader.parse(b64ToBuf(GLB_B64), '', gltf => {
+  realGroup = new THREE.Group(); scene.add(realGroup);
+  const root = gltf.scene; realGroup.add(root); root.updateMatrixWorld(true);
+  const B = V(DATA.valves.aortic).add(V(DATA.valves.pulmonary)).multiplyScalar(0.5);
+  heartPivot = new THREE.Group(); heartPivot.position.copy(B); realGroup.add(heartPivot); heartPivot.updateMatrixWorld(true);
+  const list = []; root.traverse(o => { if (o.isMesh) list.push(o); });
+  for (const o of list) {
+    const k = o.name in PART ? o.name : (o.parent && o.parent.name in PART ? o.parent.name : null);
+    if (!k) continue;
+    const p = PART[k];
+    o.material = M[p.mat].clone(); o.material.userData.base = { color: o.material.color.clone() };
+    o.userData.part = k; meshes[k] = o;
+    if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();
+    if (p.group === 'heart') heartPivot.attach(o);
+  }
+  initLiving(B);
+  meshes.lungs.visible = meshes.trachea.visible = false;
+  buildRoutes(); buildCells(); buildIcon(); applyLook();
+  ready = true; $('#loadMsg').textContent = ''; $('#goBtn').disabled = false;
+}, err => { $('#loadMsg').textContent = 'אופס, הלב לא נטען: ' + err; });
+
+// ---------------- blood routes ----------------
+function buildRoutes() {
+  const A = DATA.anchors, P = DATA.paths;
+  for (const entry of ['svc', 'ivc']) for (const lung of ['RU', 'RL', 'LU', 'LL']) {
+    const pts = [], tags = [];
+    const add = (arr, tag) => { tags.push([pts.length, tag]); for (const p of arr) { const v = V(p); if (!pts.length || pts[pts.length - 1].distanceTo(v) > 0.08) pts.push(v); } };
+    add(P[entry], entry); add([A.RA], 'RA'); add([A.tri], 'tri'); add([A.RV], 'RV'); add([DATA.valves.pulmonary], 'pulm');
+    add(P['pa_' + lung].slice(2), 'pa'); add(P['pv_' + lung], 'lung'); add([A.LA], 'LA'); add([A.mit], 'mit');
+    add([A.LV], 'LV'); add([DATA.valves.aortic], 'aortic'); add(P.aorta.slice(2), 'aorta');
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const total = cum[cum.length - 1];
+    const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+    const n = Math.ceil(total / 0.04);
+    const samp = curve.getSpacedPoints(n);
+    const tagU = {}; for (const [i, t] of tags) tagU[t] = cum[i] / total;
+    routes.push({ entry, lung, samp, n, len: total, tagU, o2: tagU.lung });
+  }
+}
+function routePos(r, u, out) { const f = Math.min(Math.max(u, 0), 1) * r.n; const i = Math.floor(f); const t = f - i;
+  const a = r.samp[Math.min(i, r.n)], b = r.samp[Math.min(i + 1, r.n)]; return out.copy(a).lerp(b, t); }
+
+// ---------------- red blood cells ----------------
+const NCELL = 600; const cellState = [];
+function rbcGeometry(R) {
+  const pts = []; const N = 16;
+  for (let i = 0; i <= N; i++) { const x = (i / N) * R; const r = x / R;
+    const h = R * 0.5 * Math.sqrt(Math.max(0, 1 - r * r)) * (0.207 + 2.003 * r * r - 1.123 * r ** 4); pts.push(new THREE.Vector2(x, h)); }
+  for (let i = N; i >= 0; i--) { const p = pts[i]; pts.push(new THREE.Vector2(p.x, -p.y)); }
+  const g = new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(Math.max(p.x, 0.0001), p.y)), 20); g.computeVertexNormals(); return g;
+}
+const BLUE = new THREE.Color(0x3d63dd), RED = new THREE.Color(0xe8262d), tmpC = new THREE.Color();
+function buildCells() {
+  const geo = rbcGeometry(0.17);
+  cells = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0, emissive: 0x220000 }), NCELL);
+  cells.instanceMatrix.setUsage(THREE.DynamicDrawUsage); cells.frustumCulled = false; cells.renderOrder = 2;
+  for (let i = 0; i < NCELL; i++) {
+    cellState.push({ r: i % routes.length, u: Math.random(), sp: 0.8 + Math.random() * 0.5, off: new THREE.Vector3((Math.random() - .5) * .5, (Math.random() - .5) * .5, (Math.random() - .5) * .5),
+      rot: new THREE.Euler(Math.random() * 6, Math.random() * 6, 0), spin: (Math.random() - .5) * 4 });
+    cells.setColorAt(i, BLUE);
+  }
+  cells.count = 300; cells.visible = false; realGroup.add(cells);
+  rideCell = new THREE.Mesh(rbcGeometry(0.16), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff2050, emissiveIntensity: 0.6, roughness: 0.3 }));
+  rideCell.visible = false; realGroup.add(rideCell);
+}
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
+function cellColor(r, u, out) { const k = THREE.MathUtils.smoothstep(u, r.o2 - 0.004, r.o2 + 0.03); return out.copy(BLUE).lerp(RED, k); }
+function updateCells(dt, flowBoost) {
+  if (!cells.visible) return;
+  for (let i = 0; i < cells.count; i++) {
+    const c = cellState[i], r = routes[c.r];
+    c.u += dt * 2.4 * c.sp * flowBoost * S.fspeed / r.len;
+    if (c.u > 1) { c.u -= 1; c.r = Math.floor(Math.random() * routes.length); }
+    lungDeformJS(routePos(r, c.u, _p).add(c.off));
+    c.rot.x += c.spin * dt; c.rot.y += c.spin * 0.7 * dt; _q.setFromEuler(c.rot);
+    let fade = Math.min(1, c.u * 60, (1 - c.u) * 60);
+    if (S.inside || S.ride) { const dc = _p.distanceTo(camera.position); fade *= THREE.MathUtils.smoothstep(dc, 0.35, 1.1); }
+    _s.setScalar(Math.max(0.001, fade));
+    _m.compose(_p, _q, _s); cells.setMatrixAt(i, _m); cells.setColorAt(i, cellColor(r, c.u, tmpC));
+  }
+  cells.instanceMatrix.needsUpdate = true; cells.instanceColor.needsUpdate = true;
+}
+
+// ---------------- looks (opacity per mode) ----------------
+let cutPlane = null;
+function setOpacity(mesh, op) {
+  if (!mesh) return; const m = mesh.material;
+  m.opacity = op; m.transparent = op < 0.999; m.depthWrite = op >= 0.999; m.needsUpdate = true;
+}
+function applyLook() {
+  if (!meshes.wall) return;
+  const ride = !!S.ride, inside = !!S.inside;
+  let wall = 1, vessel = 1, cor = 1;
+  if (ride) { wall = 0.32; vessel = 0.4; cor = 0.5; }
+  else if (inside) { wall = 1; vessel = 1; }
+  else {
+    if (S.flow) { wall = 0.38; vessel = 0.48; cor = 0.75; }
+    const g = S.glass; if (g > 0) { wall = Math.min(wall, 1 - 0.93 * g); vessel = Math.min(vessel, 1 - 0.6 * g); cor = Math.min(cor, 1 - 0.4 * g); }
+  }
+  fresnelU.value = (!inside && wall < 0.99) ? 1 : 0;
+  setOpacity(meshes.wall, wall);
+  for (const k of ['aorta', 'headarteries', 'svc', 'ivc', 'pulmart', 'pulmvein']) setOpacity(meshes[k], vessel);
+  for (const k of ['coronaryart', 'coronaryvein']) setOpacity(meshes[k], cor);
+  meshes.lungs.visible = meshes.trachea.visible = S.lungs && !inside;
+  setOpacity(meshes.lungs, ride ? 0.08 : 0.16); setOpacity(meshes.trachea, ride ? 0.15 : 0.35);
+  cells.visible = S.flow || ride || inside;
+  camLight.intensity = (inside || ride) ? 1.6 : 0;
+  // clipping
+  const clipList = ['wall', 'coronaryart', 'coronaryvein', 'pulmart', 'lungs'];
+  for (const k of clipList) { meshes[k].material.clippingPlanes = ((S.cutTarget > 0 || S.cut > 0) && !inside && !ride) ? [cutPlane] : null; meshes[k].material.needsUpdate = true; }
+}
+// plane through the four chambers, facing the viewer
+(function initCut() {
+  const A = DATA.anchors; const c = V(A.RA).add(V(A.RV)).add(V(A.LA)).add(V(A.LV)).multiplyScalar(0.25);
+  const n = new THREE.Vector3(0.12, 0.08, -1).normalize();   // near-coronal cut: removes the front half
+  cutPlane = new THREE.Plane(n, -n.dot(c)); cutPlane.userData = { n, c };
+})();
+function setCutAmount(a) { // a: 0 (no cut) .. 1 (cut through chambers)
+  const { n, c } = cutPlane.userData; const p = c.clone().addScaledVector(n, -(1 - a) * 9);
+  cutPlane.normal.copy(n); cutPlane.constant = -n.dot(p);
+}
+
+// ---------------- camera flights ----------------
+let flight = null;
+function flyTo(pos, target, dur = 1.6, then) {
+  flight = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos.clone(), t1: target.clone(), k: 0, dur, then };
+}
+function updateFlight(dt) {
+  if (!flight) return; flight.k = Math.min(1, flight.k + dt / flight.dur);
+  const e = flight.k < .5 ? 4 * flight.k ** 3 : 1 - (-2 * flight.k + 2) ** 3 / 2;
+  camera.position.lerpVectors(flight.p0, flight.p1, e); controls.target.lerpVectors(flight.t0, flight.t1, e);
+  if (flight.k >= 1) { const t = flight.then; flight = null; t && t(); }
+}
+function goHome() {
+  if (S.ride) stopRide(false);
+  if (S.inside) exitRoom();
+  controls.minDistance = 7; controls.maxDistance = 60;
+  flyTo(HOME.pos, HOME.target, 1.4);
+}
+$('#homeBtn').onclick = () => { audio(); goHome(); };
+
+// ---------------- rooms (go inside) ----------------
+const roomsSeen = new Set(store.get('rooms', []));
+const LOOK = { tri: () => V(DATA.anchors.tri), mit: () => V(DATA.anchors.mit), pulm: () => V(DATA.valves.pulmonary), aortic: () => V(DATA.valves.aortic) };
+function enterRoom(id) {
+  if (S.ride) stopRide(false); if (S.alv) exitAlv(); if (S.fist) toggleFist();
+  if (S.iconT) { S.iconT = 0; S.iconK = 0; document.querySelector('.tool[data-t="icon"]').classList.remove('on'); }
+  $('#ctrl').classList.remove('show'); document.querySelector('.tool[data-t="ctrl"]').classList.remove('on');
+  closePops(); S.inside = id; applyLook(); setTool('flow', true, true);
+  const at = V(DATA.anchors[id]); const look = LOOK[ROOMS[id].look]();
+  const dir = look.clone().sub(at).normalize();
+  const camPos = at.clone().addScaledVector(dir, -0.25);
+  const tgt = at.clone().addScaledVector(dir, 0.45);
+  // approach from outside first
+  const outside = at.clone().add(camera.position.clone().sub(at).normalize().multiplyScalar(10));
+  controls.minDistance = 0.05; controls.maxDistance = 60; controls.enableZoom = false;
+  flyTo(outside, at, 0.8, () => flyTo(camPos, tgt, 1.6, () => { controls.maxDistance = 1.2; controls.enableZoom = true; }));
+  $('#exitbtn').textContent = '⬅️ לצאת מהלב'; $('#exitbtn').classList.add('show');
+  say(ROOMS[id].name, ROOMS[id].text); speakMore('אפשר להזיז את האצבע כדי להסתכל מסביב.');
+  mission('room_' + id); roomsSeen.add(id); store.set('rooms', [...roomsSeen]);
+  if (roomsSeen.size >= 4) mission('allrooms');
+}
+function exitRoom() {
+  if (!S.inside) return; S.inside = null; applyLook(); $('#exitbtn').classList.remove('show');
+  controls.minDistance = 7; controls.maxDistance = 60; controls.enableZoom = true;
+  flyTo(HOME.pos, HOME.target, 1.6);
+}
+$('#exitbtn').onclick = () => { if (S.alv) exitAlv(); else exitRoom(); };
+document.querySelectorAll('[data-room]').forEach(b => b.onclick = () => { audio(); enterRoom(b.dataset.room); });
+
+// ---------------- living heart setup ----------------
+function initLiving(B) {
+  HU.uB.value.copy(B);
+  const w = meshes.wall, pos = w.geometry.attributes.position, v = new THREE.Vector3(); let best = 0; const apex = new THREE.Vector3();
+  w.updateMatrixWorld(true);
+  for (let i = 0; i < pos.count; i += 2) { v.fromBufferAttribute(pos, i).applyMatrix4(w.matrixWorld); const d = v.distanceTo(B); if (d > best) { best = d; apex.copy(v); } }
+  HU.uAxis.value.copy(apex).sub(B).normalize(); HU.uL.value = best;
+  const A = DATA.anchors;
+  HU.uSA.value.copy(V(A.svc_b)).lerp(V(A.RA), 0.25);
+  HU.uAVn.value.copy(V(A.tri)).lerp(V(A.mit), 0.35);
+  // lung centres (for breathing)
+  const lp = meshes.lungs.geometry.attributes.position; meshes.lungs.updateMatrixWorld(true);
+  const cR = new THREE.Vector3(), cL = new THREE.Vector3(); let nR = 0, nL = 0;
+  for (let i = 0; i < lp.count; i += 3) { v.fromBufferAttribute(lp, i).applyMatrix4(meshes.lungs.matrixWorld); if (v.x < -0.5) { cR.add(v); nR++; } else { cL.add(v); nL++; } }
+  if (nR) HU.uLR.value.copy(cR.divideScalar(nR)); if (nL) HU.uLL.value.copy(cL.divideScalar(nL));
+  setupMat(meshes.wall.material, { heart: 1, fresnel: 1, elec: 1, id: 'wall' });
+  for (const k of ['papillary', 'coronaryart', 'coronaryvein']) setupMat(meshes[k].material, { heart: 1, id: k });
+  const triAx = V(A.rvpap).sub(V(A.tri)), mitAx = V(A.lvpap).sub(V(A.mit));
+  setupMat(meshes.tricuspid.material, { heart: 1, id: 'tri', valve: { kind: 1, c: V(A.tri), a: triAx.clone().normalize(), t: triAx.length() * 0.42, open: valveOpen.tri } });
+  setupMat(meshes.mitral.material, { heart: 1, id: 'mit', valve: { kind: 1, c: V(A.mit), a: mitAx.clone().normalize(), t: mitAx.length() * 0.42, open: valveOpen.mit } });
+  const pv = V(DATA.valves.pulmonary), pa3 = V(DATA.paths.pa_RU[4]);
+  setupMat(meshes.pulmvalve.material, { heart: 1, id: 'pulm', valve: { kind: 2, c: pv, a: pa3.sub(pv).normalize(), t: 1.0, open: valveOpen.pulm } });
+  for (const k of ['lungs', 'pulmart', 'pulmvein']) setupMat(meshes[k].material, { lung: 1, id: k });
+}
+const sstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const avOpen = ph => THREE.MathUtils.clamp(1 - sstep(0.13, 0.17, ph) + sstep(0.46, 0.55, ph), 0, 1);
+const slOpen = ph => sstep(0.19, 0.24, ph) * (1 - sstep(0.40, 0.45, ph));
+function timeScale() { return S.guide ? 0.13 : (S.slow ? 0.25 : 1); }
+
+// ---------------- ECG monitor ----------------
+const ecgC = $('#ecg'), ecx = ecgC.getContext('2d'); let ecgX = 0, ecgPrev = null, ecgLastPh = 0, ecgCapTxt = '';
+function ecgVal(ph) { const g = (m, w, a) => a * Math.exp(-(((ph - m) / w) ** 2)); return g(0.05, 0.025, 0.15) + g(0.145, 0.008, -0.12) + g(0.16, 0.011, 1) + g(0.175, 0.01, -0.25) + g(0.37, 0.045, 0.3); }
+function ecgReset() { ecx.fillStyle = '#04140c'; ecx.fillRect(0, 0, 520, 150); ecgX = 0; ecgPrev = null; }
+function ecgCaption(ph) {
+  if (ph < 0.12) return '⚡ P — החדרים העליונים נלחצים';
+  if (ph < 0.2) return '⚡ QRS — החדרים הגדולים נלחצים · לאב!';
+  if (ph < 0.42) return '💨 הדם יוצא מהלב';
+  if (ph < 0.56) return 'T — השריר נח · דאב!';
+  return '💧 הלב מתמלא בדם';
+}
+function drawEcg(dt, tsc) {
+  if (!S.elec) return;
+  const W = 520, H = 150, base = 108, amp = 78;
+  const dx = dt * tsc * 190 * S.bpm / 60 * (S.beat ? 1 : 0.0);
+  const nx = ecgX + Math.max(dx, S.beat ? 0.0001 : 0);
+  ecx.fillStyle = '#04140c'; ecx.fillRect(ecgX + 1, 0, 18, H);
+  ecx.strokeStyle = '#0f3b25'; ecx.lineWidth = 1; for (let gx = Math.ceil(ecgX / 26) * 26; gx < ecgX + 19; gx += 26) { ecx.beginPath(); ecx.moveTo(gx, 0); ecx.lineTo(gx, H); ecx.stroke(); }
+  const y = base - ecgVal(beatPhase) * amp;
+  if (ecgPrev !== null && nx > ecgX) { ecx.strokeStyle = '#5dff9f'; ecx.lineWidth = 3; ecx.shadowColor = '#2bd47a'; ecx.shadowBlur = 8;
+    ecx.beginPath(); ecx.moveTo(ecgX, ecgPrev); ecx.lineTo(nx, y); ecx.stroke(); ecx.shadowBlur = 0; }
+  // wave letters
+  ecx.fillStyle = '#b8ffd6'; ecx.font = 'bold 18px Rubik';
+  for (const [m, l, yy] of [[0.05, 'P', 20], [0.16, 'QRS', 14], [0.37, 'T', 20]]) if (ecgLastPh < m && beatPhase >= m) ecx.fillText(l, Math.max(2, nx - 8), yy + 6);
+  ecgLastPh = beatPhase;
+  ecgPrev = y; ecgX = nx; if (ecgX > W) { ecgX = 0; ecgPrev = null; }
+  ecx.fillStyle = '#ffffff'; ecx.beginPath(); ecx.arc(ecgX, y, 4, 0, 7); ecx.fill();
+  const cap = ecgCaption(beatPhase); if (cap !== ecgCapTxt) { ecgCapTxt = cap; $('#ecgCap').textContent = cap; }
+  $('#ecgBpm').textContent = S.bpm;
+}
+function setElec(on) {
+  S.elec = on; HU.uElec.value = on ? 1 : 0; $('#ecgBox').classList.toggle('show', on); document.querySelector('.tool[data-t="elec"]').classList.toggle('on', on);
+  if (on) ecgReset();
+}
+
+// ---------------- guided slow-motion beat ----------------
+const GUIDE = [
+  [0.005, 'ניצוץ! ⚡', 'הכפתור החשמלי של הלב שולח ניצוץ. בקו הירוק רואים גבעה קטנה — קוראים לה P.'],
+  [0.05, 'החדרים העליונים נלחצים', 'הפרוזדורים נלחצים ודוחפים דם למטה, דרך הדלתות הפתוחות, אל החדרים הגדולים.'],
+  [0.15, 'לאב! 🔊', 'החדרים הגדולים נלחצים — והדלתות שביניהם נטרקות. זה הצליל הראשון של הלב: לאב! בקו הירוק — הקפיצה הגבוהה.'],
+  [0.23, 'הדם יוצא! 💨', 'הדלתות היוצאות נפתחות, והדם נדחף החוצה — הכחול לריאות, והאדום לכל הגוף. תראי איך השריר מתפתל, כמו כשסוחטים מגבת!'],
+  [0.44, 'דאב! 🔊', 'השריר נח, והדלתות היוצאות נסגרות — זה הצליל השני: דאב! בקו הירוק זו הגבעה T.'],
+  [0.6, 'מתמלאים בדם 💧', 'הדלתות שבין החדרים נפתחות שוב, והלב מתמלא בדם לפעימה הבאה. וככה — שוב ושוב, כל החיים!'],
+];
+function startSlowBeat() {
+  closePops(); if (S.ride) stopRide(false); if (S.inside) exitRoom(); if (S.alv) exitAlv();
+  setTool('beat', true); setElec(true); S.glass = Math.max(S.glass, 0.7); $('#glass').value = S.glass; setTool('xray', true); setTool('flow', true);
+  beatPhase = 0.95; S.guide = { i: 0, hold: 0, beats: 0, startBeat: beatCount };
+  document.querySelector('.tool[data-t="slowbeat"]').classList.add('on');
+  const d = HOME.pos.distanceTo(HOME.target) * 0.62; flyTo(HOME.target.clone().add(new THREE.Vector3(-0.35, 0.15, 1).normalize().multiplyScalar(d)), HOME.target, 1.4);
+}
+function stopSlowBeat(finished) {
+  if (!S.guide) return; S.guide = null; document.querySelector('.tool[data-t="slowbeat"]').classList.remove('on');
+  if (finished) { say('ראית פעימה שלמה! 🎉', 'בלב שלך כל הדבר הזה קורה בפחות משנייה — בערך פעם בכל שנייה, כל החיים.'); mission('slowbeat'); }
+}
+function guideTick(dt) { // returns false while the narrator holds the beat
+  const G = S.guide; if (!G) return true;
+  if (G.hold > 0) { G.hold -= dt; if (speaking()) G.hold = Math.max(G.hold, 0.4); return false; }
+  const step = GUIDE[G.i];
+  if (step && beatCount > G.startBeat && beatPhase >= step[0]) { G.i++; say(step[1], step[2]); G.hold = muted ? 3.5 : 1.2; return false; }
+  if (G.i >= GUIDE.length && beatPhase > 0.9 && !speaking()) stopSlowBeat(true);
+  return true;
+}
+
+// ---------------- the fist (size comparison) ----------------
+let fist = null;
+function toggleFist() {
+  if (typeof buildFist !== 'function') return;
+  if (S.ride) stopRide(false); if (S.inside) exitRoom(); if (S.alv) exitAlv();
+  if (!fist) { fist = buildFist(THREE); fist.position.set(12.5, 0.2, 0.5); fist.scale.setScalar(0.001); scene.add(fist); }
+  S.fist = !S.fist; document.querySelector('.tool[data-t="fist"]').classList.toggle('on', S.fist);
+  if (S.fist) {
+    const c = new THREE.Vector3(6.2, 0.3, 0); const d = HOME.pos.distanceTo(HOME.target) * (innerWidth < innerHeight ? 1.25 : 1.05);
+    flyTo(c.clone().add(new THREE.Vector3(0, 0.15, 1).normalize().multiplyScalar(d)), c, 1.4);
+    say('בגודל של אגרוף ✊', 'קמצי אגרוף ותסתכלי עליו — הלב שלך בערך בגודל האגרוף שלך! וכשאת גדלה, גם הלב שלך גדל איתך.');
+    mission('fist');
+  } else flyTo(HOME.pos, HOME.target, 1.2);
+}
+function updateFist(dt) {
+  if (!fist) return; const t = S.fist ? 1 : 0.001; const s = THREE.MathUtils.lerp(fist.scale.x, t, 1 - Math.exp(-dt * 6));
+  fist.scale.setScalar(s); fist.visible = s > 0.01; fist.rotation.y = -0.35 + Math.sin(performance.now() / 1600) * 0.15;
+}
+
+// ---------------- alveoli (zoom into the lungs) ----------------
+let ALV = null; const ALV_POS = new THREE.Vector3(400, 0, 0);
+const fadeEl = Object.assign(document.createElement('div'), { id: 'fade' });
+Object.assign(fadeEl.style, { position: 'fixed', inset: 0, background: '#0b0a1c', opacity: 0, transition: 'opacity .35s', pointerEvents: 'none', zIndex: 4 });
+document.body.appendChild(fadeEl);
+function fadeSwap(fn) { fadeEl.style.opacity = 1; setTimeout(() => { fn(); fadeEl.style.opacity = 0; }, 380); }
+function enterAlv(fromRide) {
+  if (typeof buildAlveoli !== 'function') return false;
+  if (!fromRide) { if (S.ride) stopRide(false); if (S.inside) exitRoom(); if (S.fist) toggleFist(); }
+  if (!ALV) { ALV = buildAlveoli(THREE, rbcGeometry); ALV.group.position.copy(ALV_POS); ALV.group.visible = false; scene.add(ALV.group); }
+  S.alv = { fromRide, saved: { p: camera.position.clone(), t: controls.target.clone() } };
+  camera.far = 1200; camera.updateProjectionMatrix();
+  fadeSwap(() => {
+    ALV.group.visible = true; realGroup.visible = false; flight = null;
+    controls.target.copy(ALV_POS).add(ALV.target); camera.position.copy(ALV_POS).add(ALV.camPos.clone().multiplyScalar(innerWidth < innerHeight ? 1.35 : 1)); camera.up.set(0, 1, 0);
+    controls.minDistance = 2.5; controls.maxDistance = 30; controls.enabled = true;
+  });
+  document.querySelector('.tool[data-t="alv"]').classList.add('on');
+  if (!fromRide) { $('#exitbtn').textContent = '⬅️ חזרה ללב'; $('#exitbtn').classList.add('show'); }
+  say('בועיות האוויר 🫧', 'הגדלנו המון! אלה בועיות אוויר קטנטנות בתוך הריאה. כשאת נושמת הן מתנפחות. החמצן — הנקודות התכולות — עובר מהבועית אל תאי הדם, והם הופכים לאדומים! והפסולת — הנקודות האפורות — יוצאת החוצה כשנושפים.');
+  mission('alveoli');
+  return true;
+}
+function exitAlv() {
+  if (!S.alv) return; const A = S.alv; S.alv = null;
+  document.querySelector('.tool[data-t="alv"]').classList.remove('on'); $('#exitbtn').classList.remove('show');
+  fadeSwap(() => {
+    if (ALV) ALV.group.visible = false; realGroup.visible = true;
+    controls.minDistance = S.ride ? 2.5 : 7; controls.maxDistance = 60;
+    if (A.fromRide && S.ride) { const p = tipi.position; controls.target.copy(p); camera.position.copy(p).add(new THREE.Vector3(3, 1.6, 7.5)); }
+    else { camera.position.copy(A.saved.p); controls.target.copy(A.saved.t); flyTo(HOME.pos, HOME.target, 1.2); }
+  });
+}
+
+// ---------------- ride along "Tipi" the blood cell ----------------
+function faceTex(col, rim) {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  const g = x.createRadialGradient(110, 100, 20, 128, 128, 120); g.addColorStop(0, col); g.addColorStop(1, rim);
+  x.fillStyle = g; x.beginPath(); x.arc(128, 128, 118, 0, 7); x.fill();
+  x.fillStyle = 'rgba(0,0,0,.18)'; x.beginPath(); x.ellipse(128, 136, 62, 52, 0, 0, 7); x.fill();
+  for (const ex of [92, 164]) { x.fillStyle = '#fff'; x.beginPath(); x.ellipse(ex, 110, 22, 27, 0, 0, 7); x.fill();
+    x.fillStyle = '#1b1030'; x.beginPath(); x.arc(ex + 3, 115, 12, 0, 7); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.arc(ex + 7, 109, 4.5, 0, 7); x.fill(); }
+  x.strokeStyle = '#1b1030'; x.lineWidth = 9; x.lineCap = 'round'; x.beginPath(); x.arc(128, 150, 34, 0.2, Math.PI - 0.2); x.stroke();
+  x.fillStyle = 'rgba(255,170,190,.7)'; for (const cx of [66, 190]) { x.beginPath(); x.ellipse(cx, 152, 16, 10, 0, 0, 7); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function glowTex() { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(0.35, 'rgba(255,220,240,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); }
+let tipi, tipiGlow, tipiTexB, tipiTexR, trail, trailPts = [], routeLine;
+function buildTipi() {
+  tipiTexB = faceTex('#7f9bff', '#2c49c9'); tipiTexR = faceTex('#ff7a7a', '#c1121f');
+  tipi = new THREE.Sprite(new THREE.SpriteMaterial({ map: tipiTexB, depthTest: false, transparent: true })); tipi.scale.setScalar(1.25); tipi.renderOrder = 30;
+  tipiGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), depthTest: false, transparent: true, blending: THREE.AdditiveBlending })); tipiGlow.scale.setScalar(3.4); tipiGlow.renderOrder = 29;
+  tipi.add(tipiGlow); tipiGlow.scale.setScalar(2.7);
+  tipi.visible = false; realGroup.add(tipi);
+  const N = 160; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+  trail = new THREE.Line(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthTest: false, blending: THREE.AdditiveBlending }));
+  trail.renderOrder = 28; trail.frustumCulled = false; trail.visible = false; realGroup.add(trail);
+}
+const STAGE_NAMES = { svc: 'ורידים מהגוף', ivc: 'ורידים מהגוף', RA: 'פרוזדור ימני', tri: 'דלת ימנית', RV: 'חדר ימני', pulm: 'דלת לריאות', pa: 'בדרך לריאות', lung: 'בתוך הריאות 🫁', LA: 'פרוזדור שמאלי', mit: 'דלת שמאלית', LV: 'חדר שמאלי 💪', aortic: 'דלת היציאה', aorta: 'אבי העורקים — לכל הגוף' };
+const RIDE_LINES = [
+  ['svc', 'הכירי את טיפי! 🚀', 'אני טיפי, תא דם קטן! עכשיו אני כחול ועייף, כי נתתי את כל החמצן שלי לגוף. תעקבי אחריי — אני חוזר אל הלב!'],
+  ['RA', 'הפרוזדור הימני', 'נכנסנו ללב! זה חדר הכניסה הימני.'],
+  ['tri', 'דלת!', 'הדלת נפתחת... עוברים דרך המסתם — והיא נסגרת מאחוריי.'],
+  ['RV', 'החדר הימני', 'החדר נלחץ ודוחף אותי החוצה — וויייי!'],
+  ['pa', 'בדרך לריאות', 'אני בעורק הריאה. הצינור מתפצל כמו ענפים של עץ, עד לבועיות קטנטנות.'],
+  ['lung', 'הריאות! 🫁', 'הגעתי לריאות! בואי נגדיל ונראה מקרוב איך החמצן נכנס אליי...'],
+  ['pv', 'אני אדום! ❤️', 'קיבלתי חמצן ונהייתי אדום ומלא כוח! עכשיו חוזר ללב.'],
+  ['LA', 'הפרוזדור השמאלי', 'הגעתי לפרוזדור השמאלי.'],
+  ['mit', 'עוד דלת', 'עובר דרך המסתם המיטרלי.'],
+  ['LV', 'החדר הכי חזק! 💪', 'זה החדר השמאלי. הוא נלחץ חזק־חזק, ושולח אותי לכל הגוף!'],
+  ['aorta', 'אבי העורקים', 'זה הכביש המהיר של הגוף! עכשיו אני מביא חמצן לבטן, לרגליים, לידיים ולמוח.'],
+];
+function startRide() {
+  if (S.iconT) { S.iconT = 0; S.iconK = 0; document.querySelector('.tool[data-t="icon"]').classList.remove('on'); }
+  $('#ctrl').classList.remove('show'); document.querySelector('.tool[data-t="ctrl"]').classList.remove('on');
+  if (S.inside) { S.inside = null; $('#exitbtn').classList.remove('show'); }
+  if (S.alv) exitAlv(); if (S.fist) toggleFist(); if (S.guide) stopSlowBeat(false);
+  closePops();
+  const r = routes[Math.floor(Math.random() * 4)];
+  S.ride = { r, u: 0.0, said: new Set(), inside: false, micro: 0, microDone: false, stage: '' };
+  if (!tipi) buildTipi();
+  tipi.visible = trail.visible = true; trailPts = [];
+  if (routeLine) realGroup.remove(routeLine);
+  routeLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(r.samp), new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.35, gapSize: 0.25, transparent: true, opacity: 0.35, depthTest: false }));
+  routeLine.computeLineDistances(); routeLine.renderOrder = 27; realGroup.add(routeLine);
+  controls.enabled = true; controls.minDistance = 2.5; controls.maxDistance = 45; applyLook();
+  const p0 = routePos(r, 0.0, new THREE.Vector3()); flyTo(p0.clone().add(new THREE.Vector3(4, 2, 10)), p0, 1.4);
+  $('#ridebar').classList.add('show'); $('#tools').style.opacity = 0.35; openTray(null);
+  document.querySelector('.tool[data-t="ride"]').classList.add('on');
+}
+function stopRide(finished) {
+  if (!S.ride) return; S.ride = null; controls.enabled = true; tipi.visible = trail.visible = false; if (routeLine) routeLine.visible = false; applyLook();
+  $('#ridebar').classList.remove('show'); $('#tools').style.opacity = 1; document.querySelector('.tool[data-t="ride"]').classList.remove('on');
+  if (S.alv) exitAlv();
+  controls.minDistance = 7; controls.maxDistance = 60; camera.up.set(0, 1, 0);
+  flyTo(HOME.pos, HOME.target, 1.8);
+  if (finished) { say('סיבוב שלם! 🎉', 'עשינו את כל הסיבוב! הדם שלך עושה את הסיבוב הזה בפחות מדקה — כל הזמן, כל החיים.'); mission('ride'); }
+}
+$('#rideStop').onclick = () => stopRide(false);
+$('#rideCam').onclick = () => { const R = S.ride; if (!R) return; R.inside = !R.inside; $('#rideCam').textContent = R.inside ? '👀' : '🎥';
+  if (!R.inside) { camera.up.set(0, 1, 0); controls.target.copy(tipi.position); camera.position.copy(tipi.position).add(new THREE.Vector3(3, 1.6, 7.5)); controls.enabled = true; }
+  else controls.enabled = false; };
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _up = new THREE.Vector3(), _look = new THREE.Matrix4(), _tq = new THREE.Quaternion();
+function updateRide(dt, flowBoost) {
+  const R = S.ride; if (!R) return; const r = R.r;
+  if (R.micro > 0) { R.micro -= dt; controls.update(); if (R.micro <= 0) exitAlv(); return; }
+  for (const [tag, t, txt] of RIDE_LINES) if (!R.said.has(tag) && R.u >= (r.tagU[tag] ?? 2) - 0.002) { R.said.add(tag); say(t, txt); }
+  if (!R.microDone && R.u >= r.tagU.lung + 0.004 && typeof buildAlveoli === 'function') { R.microDone = true; R.micro = 13; enterAlv(true); return; }
+  const slow = speaking() ? 0.5 : 1;
+  const inHeart = (R.u > r.tagU.RA - 0.01 && R.u < r.tagU.pa + 0.01) || (R.u > r.tagU.LA - 0.01 && R.u < r.tagU.aorta + 0.02);
+  if (!flight) R.u += dt * (inHeart ? 0.85 : 2.2) * slow * flowBoost / r.len;
+  if (R.u >= 0.985) { stopRide(true); return; }
+  routePos(r, R.u, _a); lungDeformJS(_a);
+  tipi.position.copy(_a); tipi.material.map = R.u < r.o2 + 0.01 ? tipiTexB : tipiTexR;
+  // trail
+  if (!trailPts.length || trailPts[0].distanceTo(_a) > 0.08) { trailPts.unshift(_a.clone()); if (trailPts.length > 160) trailPts.pop(); }
+  const tp = trail.geometry.attributes.position, tc = trail.geometry.attributes.color; const col = R.u < r.o2 ? BLUE : RED;
+  for (let i = 0; i < 160; i++) { const q = trailPts[Math.min(i, trailPts.length - 1)] || _a; tp.setXYZ(i, q.x, q.y, q.z); const f = Math.max(0, 1 - i / trailPts.length); tc.setXYZ(i, col.r * f + f * 0.3, col.g * f + f * 0.3, col.b * f + f * 0.3); }
+  tp.needsUpdate = tc.needsUpdate = true; trail.geometry.setDrawRange(0, Math.max(2, trailPts.length));
+  // stage label
+  let st = ''; for (const k in r.tagU) if (R.u >= r.tagU[k] - 0.001) st = k;
+  if (st !== R.stage) { R.stage = st; $('#rideStage').textContent = '📍 ' + (STAGE_NAMES[st] || ''); }
+  const dot = $('#rideDot'); dot.style.right = (R.u * 100) + '%'; dot.textContent = R.u < r.o2 ? '🔵' : '🔴';
+  if (flight) return;
+  if (R.inside) {
+    routePos(r, R.u - 0.9 / r.len, _b); lungDeformJS(_b);
+    const ahead = lungDeformJS(routePos(r, R.u + 2.0 / r.len, new THREE.Vector3()));
+    camera.position.lerp(_b.add(new THREE.Vector3(0, 0.15, 0)), 1 - Math.exp(-dt * 6));
+    _look.lookAt(camera.position, ahead, camera.up); _tq.setFromRotationMatrix(_look);
+    camera.quaternion.slerp(_tq, 1 - Math.exp(-dt * 3));
+  } else {
+    const prev = controls.target.clone(); controls.target.lerp(_a, 1 - Math.exp(-dt * 5));
+    camera.position.add(controls.target.clone().sub(prev)); controls.update();
+  }
+}
+
+// ---------------- emoji heart 🩷 ----------------
+function buildIcon() {
+  const h = new THREE.Shape();
+  h.moveTo(5, 5); h.bezierCurveTo(5, 5, 4, 0, 0, 0); h.bezierCurveTo(-6, 0, -6, 7, -6, 7); h.bezierCurveTo(-6, 11, -3, 15.4, 5, 19);
+  h.bezierCurveTo(12, 15.4, 16, 11, 16, 7); h.bezierCurveTo(16, 7, 16, 0, 10, 0); h.bezierCurveTo(7, 0, 5, 5, 5, 5);
+  const g = new THREE.ExtrudeGeometry(h, { depth: 1.5, bevelEnabled: true, bevelSegments: 14, steps: 1, bevelSize: 2.4, bevelThickness: 3.4, curveSegments: 64 });
+  g.center(); g.rotateZ(Math.PI); g.scale(0.62, 0.62, 0.62); g.computeVertexNormals();
+  iconHeart = new THREE.Mesh(g, new THREE.MeshPhysicalMaterial({ color: 0xff4f9e, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.08, sheen: 0.8, sheenColor: new THREE.Color(0xffd1e6), emissive: 0x3a0018 }));
+  iconHeart.position.set(0, 0.6, 0); iconHeart.visible = false; iconHeart.userData.part = 'icon';
+  scene.add(iconHeart); meshes.icon = iconHeart;
+}
+let iconVisited = false;
+function toggleIcon() {
+  if (S.ride) stopRide(false); if (S.inside) exitRoom();
+  S.iconT = S.iconT ? 0 : 1;
+  document.querySelector('.tool[data-t="icon"]').classList.toggle('on', !!S.iconT);
+  if (S.iconT) { iconVisited = true; flyTo(new THREE.Vector3(0, 0.6, 26), HOME.target, 1.2);
+    say('לב של אימוג׳י 🩷', 'ככה מציירים לב! אבל האם הלב האמיתי שלך נראה ככה? לחצי שוב על הכפתור 🩷 ותגלי.'); }
+  else { flyTo(HOME.pos, HOME.target, 1.2);
+    say('זה הלב האמיתי! ❤️', 'הלב האמיתי לא נראה כמו בציור — יש לו צינורות גדולים, ארבעה חדרים ודלתות. אבל הוא בדיוק באותו צבע של אהבה!');
+    if (iconVisited) mission('icon'); }
+}
+function updateIcon(dt) {
+  if (!iconHeart) return;
+  if (S.iconK !== S.iconT) { S.iconK += Math.sign(S.iconT - S.iconK) * dt / 1.1; S.iconK = THREE.MathUtils.clamp(S.iconK, 0, 1); }
+  const k = S.iconK, e = k * k * (3 - 2 * k);
+  realGroup.visible = e < 0.999 && !S.alv; realGroup.scale.setScalar(Math.max(0.001, 1 - e)); realGroup.rotation.y = e * Math.PI;
+  iconHeart.visible = e > 0.001;
+  const pulse = 1 + 0.09 * (S.lastPulse || 0) * S.amp;
+  iconHeart.scale.setScalar(Math.max(0.001, e) * pulse); iconHeart.rotation.y = -(1 - e) * Math.PI + Math.sin(performance.now() / 1400) * 0.25 * e;
+}
+
+// ---------------- picking ----------------
+const ray = new THREE.Raycaster(); const ndc = new THREE.Vector2(); let downAt = null; let highlight = null;
+canvas.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY, t: performance.now() }; audio(); if (S.drum) drumTap(); });
+canvas.addEventListener('pointerup', e => {
+  if (!downAt || S.ride) return; const d = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y); downAt = null;
+  if (d > 8 || S.drum) return;
+  ndc.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1); ray.setFromCamera(ndc, camera);
+  const objs = Object.values(meshes).filter(m => m.visible && m.material.opacity > 0.3 && (m === iconHeart ? S.iconK > 0.5 : S.iconK < 0.5));
+  const hits = ray.intersectObjects(objs, false).filter(h => {
+    const cp = h.object.material.clippingPlanes; return !(cp && cp[0].distanceToPoint(h.point) < 0);
+  });
+  if (!hits.length) return;
+  pickPart(hits[0].object.userData.part);
+});
+function pickPart(k) {
+  const p = PART[k]; if (!p) return;
+  if (highlight) highlight.m.material.emissive?.setHex(0x000000);
+  const m = meshes[k]; highlight = { m, t: 0 };
+  say(p.name, p.text);
+  if (k === 'aorta') mission('aorta');
+  if (p.valve) mission('valve');
+  if (p.coronary) mission('coronary');
+  if (k === 'lungs' || k === 'trachea') mission('lungtap');
+  if (k === 'svc' || k === 'ivc') mission('vena');
+}
+function updateHighlight(dt) {
+  if (!highlight) return; highlight.t += dt;
+  const k = highlight.t < 2.4 ? (0.5 + 0.5 * Math.sin(highlight.t * 9)) * 0.6 : 0;
+  highlight.m.material.emissive?.setRGB(k, k * 0.85, k * 0.4);
+  if (highlight.t > 2.4) highlight = null;
+}
+
+// ---------------- drum game (tap with the beat) ----------------
+function startDrum() { closePops(); S.drum = { hits: 0, lastBeat: -1 }; setTool('beat', true, true); $('#drum').classList.add('show'); updDrum();
+  say('תופפי עם הלב 🥁', 'כל פעם שהלב עושה בום — תלחצי על המסך! צריך לתפוס שש פעימות. אפשר גם לשים יד על הלב שלך ולהרגיש אותו.'); }
+function updDrum() { $('#drumN').textContent = '●'.repeat(S.drum.hits) + '○'.repeat(6 - S.drum.hits); }
+function drumTap() {
+  const ph = beatPhase; const good = ph < 0.55 || ph > 0.9;
+  if (good && S.drum.lastBeat !== beatCount) { S.drum.hits++; S.drum.lastBeat = beatCount; thump(140, 0.08, 0.3); updDrum();
+    if (S.drum.hits >= 6) { S.drum = null; setTimeout(() => $('#drum').classList.remove('show'), 600); mission('drum'); } }
+}
+
+// ---------------- tools ----------------
+function setTool(t, on, silent) {
+  const b = document.querySelector(`.tool[data-t="${t}"]`); if (b) b.classList.toggle('on', on);
+  if (t === 'beat') { S.beat = on; $('#beatToggle').textContent = on ? '⏸️' : '▶️'; $('#beatToggle').classList.toggle('on', on); }
+  if (t === 'flow') { S.flow = on; applyLook(); $('#flowToggle').textContent = on ? 'להסתיר' : 'להציג'; $('#flowToggle').classList.toggle('on', on); }
+  if (t === 'xray') { S.xray = on; S.glass = on ? Math.max(S.glass, 0.85) : 0; $('#glass').value = S.glass; applyLook(); }
+  if (t === 'lungs') { S.lungs = on; applyLook(); }
+  if (t === 'cut') { S.cutTarget = on ? 1 : 0; applyLook(); }
+}
+const FACTS = [
+  'הלב שלך פועם בערך מאה אלף פעמים בכל יום!',
+  'הלב שלך בגודל של האגרוף שלך. נסי לקמוץ אגרוף — זה בערך הגודל שלו.',
+  'כשאת רצה, הלב פועם מהר יותר, כדי להביא יותר חמצן לשרירים.',
+  'הדם בגוף שלך תמיד אדום! בציורים צובעים בכחול את הדם שאין בו הרבה חמצן — כדי שיהיה קל להבין.',
+  'לתמנון יש שלושה לבבות!',
+  'ללווייתן הכחול יש לב ענק — גדול כמו מכונית קטנה.',
+  'הצליל בום־בום שהרופא שומע בסטטוסקופ — זה הדלתות של הלב שנסגרות.',
+  'אם נחבר את כל כלי הדם של הגוף בשורה אחת, הם יקיפו את כדור הארץ יותר מפעמיים!',
+  'הלב של תינוקות פועם הרבה יותר מהר מהלב של מבוגרים.',
+  'הלב מתחיל לפעום עוד לפני שנולדים — כשהתינוק עוד בבטן של אמא.',
+  'הלב לא צריך שתזכרי להפעיל אותו — יש לו "כפתור חשמלי" משלו שמפעיל כל פעימה.',
+];
+let factI = Math.floor(Math.random() * FACTS.length), factsHeard = 0;
+let openGroup = null;
+function openTray(g) {
+  openGroup = g; document.querySelectorAll('.grp').forEach(x => x.classList.toggle('open', x.dataset.g === g));
+  document.querySelectorAll('#tray .tool').forEach(x => x.classList.toggle('vis', x.dataset.g === g));
+  $('#tray').classList.toggle('show', !!g);
+}
+document.querySelectorAll('.grp').forEach(b => b.onclick = () => { audio(); openTray(openGroup === b.dataset.g ? null : b.dataset.g); });
+function syncGroups() { document.querySelectorAll('.grp').forEach(g => g.classList.toggle('has-on', !!document.querySelector(`#tray .tool.on[data-g="${g.dataset.g}"]`))); }
+setInterval(syncGroups, 400);
+canvas.addEventListener('pointerdown', () => { if (openGroup) openTray(null); });
+document.querySelectorAll('.tool').forEach(b => b.onclick = () => {
+  audio(); const t = b.dataset.t, on = !b.classList.contains('on');
+  if (t === 'ctrl') { const open = !$('#ctrl').classList.contains('show'); $('#ctrl').classList.toggle('show', open); b.classList.toggle('on', open);
+    if (open) { closePops(); say('לוח השליטה 🎛️', 'כאן את המפעילה! אפשר לשנות את הדופק, לבחור כמה חזק הלב נלחץ, להפעיל את הדם ולהציץ לתוך החדרים.'); mission('ctrl'); } return; }
+  if (t === 'icon') { toggleIcon(); return; }
+  if (t === 'elec') { setElec(!S.elec); if (S.elec) { say('החשמל של הלב ⚡', 'בתוך הלב יש כפתור חשמלי קטן. הוא שולח ניצוץ — קודם לחדרים העליונים, מחכה רגע, ואז לחדרים הגדולים. כל ניצוץ הוא פעימה! הקו הירוק הוא מה שרואים בבית חולים במכשיר שבודק את הלב.'); mission('elec'); } return; }
+  if (t === 'slowbeat') { if (S.guide) { stopSlowBeat(false); return; } startSlowBeat(); return; }
+  if (t === 'alv') { if (S.alv) { exitAlv(); return; } if (!enterAlv(false)) say('', 'עוד רגע...'); return; }
+  if (t === 'fist') { toggleFist(); return; }
+  if (t === 'flow') { setTool('flow', on); if (on) { say('זרימת הדם 🩸', 'אלה תאי דם קטנטנים! הכחולים עייפים וצריכים חמצן, האדומים מלאים בחמצן. עקבי אחריהם — לאן הם הולכים?'); mission('flow'); } return; }
+  if (t === 'xray') { setTool('xray', on); if (on) { say('לב מזכוכית 👻', 'עכשיו הלב שקוף כמו זכוכית! רואים את החדרים, את הדלתות ואת השרירים הקטנים שבפנים. אפשר לשנות כמה שקוף בלוח השליטה 🎛️.'); if (!S.flow) setTool('flow', true); mission('xray'); } return; }
+  if (t === 'lungs') { setTool('lungs', on); if (on) { say('הריאות 🫁', 'הלב גר בין שתי הריאות! תראי — הן מתנפחות כשנושמים פנימה ומתכווצות כשנושפים. לחצי על 🫧 כדי להגדיל ולראות איך החמצן נכנס לדם.'); mission('lungs'); } return; }
+  if (t === 'cut') { setTool('cut', on); if (on) { say('חותכים את הלב ✂️', 'חתכנו את הלב באמצע, כמו תפוח! עכשיו רואים את החדרים מבפנים ואת הדלתות ביניהם. סובבי ותסתכלי.'); mission('cut'); } return; }
+  if (t === 'rooms') { openPop('#roomsPop'); speak('לאיזה חדר נכנסים? יש ארבעה חדרים. הכחולים בצד ימין של הלב, והאדומים בצד שמאל.'); return; }
+  if (t === 'ride') { if (S.ride) stopRide(false); else { startRide(); } return; }
+  if (t === 'fact') { const f = FACTS[factI++ % FACTS.length]; say('הידעת? 💡', f); if (++factsHeard >= 3) mission('facts'); return; }
+  if (t === 'missions') { renderMissions(); openPop('#missionsPop'); return; }
+});
+function bpmEmoji(v) { return v < 65 ? '😴' : v < 115 ? '🚶‍♀️' : v < 160 ? '🏃‍♀️' : '🚀'; }
+let bpmSayT = 0, lastBand = 'walk';
+function setBpm(v, talk) {
+  S.bpm = +v; $('#bpm').value = v; $('#bpmVal').textContent = v; $('#bpmEmo').textContent = bpmEmoji(v);
+  document.querySelectorAll('#ctrl [data-b]').forEach(x => x.classList.toggle('on', +x.dataset.b === +v));
+  if (!S.beat) setTool('beat', true);
+  const band = v < 65 ? 'sleep' : v < 115 ? 'walk' : 'run';
+  if (band === 'run') mission('run'); if (band === 'sleep') mission('sleep');
+  if (talk && band !== lastBand) { lastBand = band; say(...({ sleep: ['ששש... ישנה 😴', 'כשאת ישנה, הלב פועם לאט ובשקט. הגוף נח.'],
+      walk: ['הולכת 🚶‍♀️', 'ככה הלב פועם כשאת משחקת או הולכת.'],
+      run: ['רצה מהר! 🏃‍♀️', 'כשאת רצה, השרירים צריכים הרבה חמצן — אז הלב פועם מהר־מהר! נסי לקפוץ עשר פעמים ולהרגיש את הלב שלך.'] })[band]); }
+}
+$('#bpm').oninput = e => setBpm(e.target.value, true);
+document.querySelectorAll('#ctrl [data-b]').forEach(b => b.onclick = () => { audio(); setBpm(b.dataset.b, true); });
+$('#beatToggle').onclick = () => { audio(); setTool('beat', !S.beat); if (!S.beat) say('עצרנו את הלב ⏸️', 'רק בשביל לחקור! לב אמיתי אף פעם לא עוצר, גם לא בלילה.'); };
+$('#glass').oninput = e => { S.glass = +e.target.value; S.xray = S.glass > 0;
+  document.querySelector('.tool[data-t="xray"]').classList.toggle('on', S.xray); applyLook(); if (S.glass > 0.6) mission('xray'); };
+$('#amp').oninput = e => { S.amp = +e.target.value; if (S.amp >= 2.5) mission('strong'); };
+$('#fspeed').oninput = e => { S.fspeed = +e.target.value; if (!S.flow) setTool('flow', true); };
+$('#fcount').oninput = e => { cells.count = +e.target.value; if (!S.flow) setTool('flow', true); };
+$('#flowToggle').onclick = () => { audio(); setTool('flow', !S.flow); if (S.flow) { mission('flow'); say('זרימת הדם 🩸', 'אלה תאי דם קטנטנים! הכחולים עייפים וצריכים חמצן, האדומים מלאים בחמצן.'); } };
+$('#slowBtn').onclick = () => { audio(); S.slow = !S.slow; $('#slowBtn').classList.toggle('on', S.slow); $('#slowBtn').textContent = S.slow ? '🐌 הילוך איטי — פועל' : '🐌 הילוך איטי';
+  if (S.slow) { say('הילוך איטי 🐌', 'עכשיו הכול קורה לאט־לאט. תסתכלי איך השריר נלחץ ומתפתל, ואיך הדלתות נפתחות ונסגרות.'); if (S.glass < 0.5) { S.glass = 0.7; $('#glass').value = 0.7; setTool('xray', true); } } };
+$('#fsBtn').onclick = async () => { audio(); const d = document;
+  try { if (d.fullscreenElement || d.webkitFullscreenElement) await (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+        else { const el = d.documentElement; const f = el.requestFullscreen || el.webkitRequestFullscreen; if (!f) throw 0; await f.call(el, { navigationUI: 'hide' }); } }
+  catch { say('מסך מלא', 'בתוך החלון הזה הדפדפן לא מאפשר מסך מלא. פתחו את הקובץ ישירות בכרום, ושם הכפתור יעבוד.', { silent: true }); } };
+document.addEventListener('fullscreenchange', () => { $('#fsBtn').textContent = document.fullscreenElement ? '🗗' : '⛶'; setTimeout(resize, 100); });
+$('#ctrlClose').onclick = () => { $('#ctrl').classList.remove('show'); document.querySelector('.tool[data-t="ctrl"]').classList.remove('on'); };
+
+// ---------------- popups ----------------
+function openPop(id) { closePops(); $(id).classList.add('show'); }
+function closePops() { document.querySelectorAll('.pop').forEach(p => p.classList.remove('show')); }
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = closePops);
+$('#starsBtn').onclick = () => { audio(); renderMissions(); openPop('#missionsPop'); };
+
+// ---------------- missions ----------------
+const MISSIONS = [
+  { id: 'rotate', e: '🔄', t: 'סובבי את הלב עם האצבע' },
+  { id: 'zoom', e: '🔍', t: 'תתקרבי ללב עם שתי אצבעות' },
+  { id: 'aorta', e: '🔴', t: 'מצאי את הצינור האדום הכי גדול ולחצי עליו' },
+  { id: 'vena', e: '🔵', t: 'מצאי צינור כחול שמביא דם עייף ללב' },
+  { id: 'ctrl', e: '🎛️', t: 'פתחי את לוח השליטה של הלב' },
+  { id: 'run', e: '🏃‍♀️', t: 'תגרמי ללב לפעום מהר כמו בריצה' },
+  { id: 'sleep', e: '😴', t: 'תרדימי את הלב — ותראי איך הוא פועם לאט' },
+  { id: 'strong', e: '💪', t: 'תגרמי ללב להילחץ הכי חזק שאפשר' },
+  { id: 'flow', e: '🩸', t: 'תפעילי את זרימת הדם' },
+  { id: 'icon', e: '🩷', t: 'הפכי את הלב ללב של אימוג׳י — ובחזרה' },
+  { id: 'xray', e: '👻', t: 'תהפכי את הלב לשקוף' },
+  { id: 'valve', e: '🚪', t: 'מצאי דלת (מסתם) בתוך הלב ולחצי עליה' },
+  { id: 'coronary', e: '👑', t: 'מצאי את הצינורות הקטנים שמאכילים את הלב עצמו' },
+  { id: 'cut', e: '✂️', t: 'חתכי את הלב והסתכלי פנימה' },
+  { id: 'room_LV', e: '💪', t: 'היכנסי לחדר הכי חזק בלב' },
+  { id: 'allrooms', e: '🏠', t: 'בקרי בכל ארבעת החדרים' },
+  { id: 'lungs', e: '🫁', t: 'הדליקי את הריאות ותראי אותן נושמות' },
+  { id: 'alveoli', e: '🫧', t: 'הגדילי את הריאה וראי איך החמצן נכנס לדם' },
+  { id: 'elec', e: '⚡', t: 'הדליקי את החשמל של הלב' },
+  { id: 'slowbeat', e: '🔬', t: 'צפי בפעימה אחת שלמה בהילוך איטי' },
+  { id: 'fist', e: '✊', t: 'גלי בגודל של מה הלב שלך' },
+  { id: 'ride', e: '🚀', t: 'רכבי על תא דם בסיבוב שלם' },
+  { id: 'facts', e: '💡', t: 'שמעי שלוש עובדות מדהימות' },
+  { id: 'drum', e: '🥁', t: 'תופפי יחד עם הלב', go: () => startDrum() },
+  { id: 'q1', e: '🤔', t: 'חידה: כמה חדרים יש בלב?', go: () => quiz('q1') },
+  { id: 'q2', e: '🤔', t: 'חידה: איפה הדם מקבל חמצן?', go: () => quiz('q2') },
+  { id: 'q3', e: '🤔', t: 'חידה: איזה צד של הלב שולח דם לכל הגוף?', go: () => quiz('q3') },
+];
+const done = new Set(store.get('done', []));
+const HINTS = { rotate: { say: 'שימי אצבע על הלב והזיזי אותה לצדדים.' }, zoom: { say: 'שימי שתי אצבעות על המסך ופתחי אותן — כמו בתמונות.' },
+  aorta: { part: 'aorta' }, vena: { part: 'svc' }, coronary: { part: 'coronaryart' }, ctrl: { tool: 'ctrl' }, run: { tool: 'ctrl' }, sleep: { tool: 'ctrl' }, strong: { tool: 'ctrl' },
+  flow: { tool: 'flow' }, icon: { tool: 'icon' }, xray: { tool: 'xray' }, valve: { tool: 'xray', say: 'הפכי את הלב לשקוף, ואז לחצי על הדלתות הלבנות שבפנים.' },
+  cut: { tool: 'cut' }, room_LV: { tool: 'rooms' }, allrooms: { tool: 'rooms' }, lungs: { tool: 'lungs' }, alveoli: { tool: 'alv' }, elec: { tool: 'elec' },
+  slowbeat: { tool: 'slowbeat' }, fist: { tool: 'fist' }, ride: { tool: 'ride' }, facts: { tool: 'fact' } };
+function showHint(m) {
+  closePops(); const h = HINTS[m.id] || {};
+  if (h.tool) { const b = document.querySelector(`.tool[data-t="${h.tool}"]`); if (b) { openTray(b.dataset.g); b.classList.add('hint'); setTimeout(() => b.classList.remove('hint'), 4500); } }
+  if (h.part && meshes[h.part]) { if (S.glass > 0.6 && h.part !== 'coronaryart') {} const mm = meshes[h.part]; if (highlight) highlight.m.material.emissive?.setHex(0); highlight = { m: mm, t: -2.5 }; }
+  speak([h.say || m.t]);
+}
+function renderMissions() {
+  const L = $('#missionList'); L.innerHTML = '';
+  for (const m of MISSIONS) {
+    const d = document.createElement('div'); d.className = 'mission' + (done.has(m.id) ? ' done' : '');
+    d.innerHTML = `<span class="e">${m.e}</span><span class="t">${m.t}</span>${!done.has(m.id) ? (m.go ? '<button class="go">יאללה!</button>' : '<button class="go hintb">👉 הראי לי</button>') : ''}<span class="s">⭐</span>`;
+    d.onclick = ev => { if (ev.target.classList.contains('hintb')) { showHint(m); return; } if (ev.target.classList.contains('go')) { m.go(); return; } speak(done.has(m.id) ? [m.t, 'כבר עשית את זה! כל הכבוד.'] : [m.t]); };
+    L.appendChild(d);
+  }
+  $('#progBar').style.width = (done.size / MISSIONS.length * 100) + '%';
+}
+function updStars() { $('#starCount').textContent = done.size + '/' + MISSIONS.length; }
+updStars();
+const PRAISE = ['כל הכבוד ליה!', 'מדהים! עוד כוכב!', 'איזו חוקרת!', 'יופי של עבודה!', 'וואו, את אלופה!'];
+function mission(id) {
+  if (done.has(id) || !MISSIONS.find(m => m.id === id)) return;
+  done.add(id); store.set('done', [...done]); updStars();
+  setTimeout(() => {
+    chime(); const msg = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+    $('#toastText').textContent = msg; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 1600);
+    if (done.size === MISSIONS.length) { confetti(); setTimeout(() => say('🏆 חוקרת לב אמיתית!', 'ליה, אספת את כל הכוכבים! את יודעת על הלב יותר מהרבה מבוגרים. כל הכבוד!'), 1700); }
+    else confetti(40);
+  }, speaking() ? 400 : 200);
+}
+$('#resetStars').onclick = () => { done.clear(); store.set('done', []); updStars(); renderMissions(); };
+
+// quizzes
+const QUIZ = {
+  q1: { q: 'כמה חדרים יש בלב של בן אדם?', o: [['שניים', '✌️'], ['ארבעה', '🖐️'], ['עשרה', '🙌']], a: 1, yes: 'נכון! ארבעה חדרים: שני פרוזדורים למעלה ושני חדרים למטה.' },
+  q2: { q: 'איפה הדם מקבל חמצן?', o: [['ברגליים', '🦶'], ['בריאות', '🫁'], ['באוזניים', '👂']], a: 1, yes: 'נכון! בריאות, כשאנחנו נושמים — הדם לוקח חמצן מהאוויר.' },
+  q3: { q: 'איזה צד של הלב שולח דם אדום לכל הגוף?', o: [['הצד השמאלי', '🔴'], ['הצד הימני', '🔵']], a: 0, yes: 'נכון! החדר השמאלי, הכי חזק — דרך אבי העורקים.' },
+};
+function quiz(id) {
+  const Q = QUIZ[id]; openPop('#quizPop'); $('#quizQ').textContent = Q.q; speak([Q.q].concat(Q.o.map(o => o[0])));
+  const O = $('#quizOpts'); O.innerHTML = '';
+  Q.o.forEach(([txt, e], i) => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = `<span class="e">${e}</span>${txt}`;
+    b.onclick = () => { if (i === Q.a) { b.classList.add('good'); say('', Q.yes); setTimeout(() => { closePops(); mission(id); }, 1600); }
+      else { b.classList.add('bad'); speak('לא בדיוק... נסי שוב!'); setTimeout(() => b.classList.remove('bad'), 500); } };
+    O.appendChild(b); });
+}
+
+// ---------------- confetti ----------------
+const cc = $('#confetti'), cx = cc.getContext('2d'); let conf = [];
+function confetti(n = 160) { cc.width = innerWidth; cc.height = innerHeight;
+  for (let i = 0; i < n; i++) conf.push({ x: innerWidth / 2, y: innerHeight * 0.4, vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4, r: Math.random() * 6, c: ['#ff5d8f', '#ffd43b', '#4c6ef5', '#f03e3e', '#ffffff'][i % 5], s: Math.random() < .3 ? '❤' : null, life: 0 }); }
+function drawConfetti(dt) {
+  if (!conf.length) return; cx.clearRect(0, 0, cc.width, cc.height);
+  conf = conf.filter(p => (p.life += dt) < 3);
+  for (const p of conf) { p.vy += 25 * dt; p.x += p.vx * dt * 30; p.y += p.vy * dt * 30; p.vx *= .99;
+    cx.globalAlpha = Math.max(0, 1 - p.life / 3); cx.fillStyle = p.c;
+    if (p.s) { cx.font = '22px sans-serif'; cx.fillText(p.s, p.x, p.y); } else { cx.fillRect(p.x, p.y, 8, 12); } }
+  if (!conf.length) cx.clearRect(0, 0, cc.width, cc.height);
+}
+
+// ---------------- heartbeat ----------------
+let beatPhase = 0, beatCount = 0, lastLub = -1, lastDub = -1;
+function beatCurve(ph) { // atrial kick then strong ventricular squeeze
+  const g = (x, m, w) => Math.exp(-(((x - m) / w) ** 2));
+  return { atria: g(ph, 0.04, 0.06), vent: Math.max(g(ph, 0.24, 0.1), ph > 0.18 && ph < 0.3 ? 1 : 0) * (ph < 0.45 ? 1 : g(ph, 0.24, 0.12)) };
+}
+
+// ---------------- rotation / zoom mission detection ----------------
+let rotAcc = 0, lastAz = null;
+controls.addEventListener('change', () => {
+  if (!ready || flight || S.ride || S.inside || S.alv) return;
+  const az = controls.getAzimuthalAngle(); if (lastAz !== null) rotAcc += Math.abs(az - lastAz) % Math.PI; lastAz = az;
+  if (rotAcc > 2.2) mission('rotate');
+  if (camera.position.distanceTo(controls.target) < HOME.pos.distanceTo(HOME.target) * 0.6) mission('zoom');
+});
+
+// ---------------- start ----------------
+$('#goBtn').onclick = () => {
+  audio(); $('#start').classList.add('hide');
+  flyTo(HOME.pos, HOME.target, 2.4);
+  setTimeout(() => say('שלום ליה! 👋', 'זה לב אמיתי של בן אדם — בדיוק כמו הלב שדופק אצלך בתוך החזה. אפשר לסובב אותו עם האצבע, להתקרב, וללחוץ על כל חלק כדי לשמוע מה הוא. לחצי על המשימות 🎯 כדי לאסוף כוכבים!'), 900);
+};
+
+// ---------------- main loop ----------------
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (!ready) { renderer.render(scene, camera); return; }
+  const tsc = timeScale();
+  const run = guideTick(dt);
+  // heartbeat
+  let flowBoost = 1;
+  if (S.beat) {
+    if (run) { beatPhase += dt * tsc * S.bpm / 60; if (beatPhase >= 1) { beatPhase -= 1; beatCount++; } }
+    const { atria, vent } = beatCurve(beatPhase);
+    HU.uV.value = vent; HU.uAt.value = atria;
+    HU.uWob.value = beatPhase < 0.45 ? vent * 0.4 : Math.exp(-(beatPhase - 0.45) * 7) * 0.9;
+    valveOpen.tri.value = valveOpen.mit.value = avOpen(beatPhase); valveOpen.pulm.value = slOpen(beatPhase);
+    S.lastPulse = vent;
+    const sf = 0.55 + 0.45 * tsc, sd = 1 / Math.max(tsc, 0.35);
+    if (beatPhase > 0.15 && lastLub !== beatCount) { lastLub = beatCount; thump(62 * sf, 0.16 * sd, 0.35 + 0.2 * Math.min(S.amp, 2)); }
+    if (beatPhase > 0.44 && lastDub !== beatCount) { lastDub = beatCount; thump(88 * sf, 0.11 * sd, 0.35); }
+    flowBoost = 0.55 + 1.3 * vent; if (S.bpm > 120) flowBoost *= 1.5; if (S.bpm < 60) flowBoost *= 0.7;
+    document.querySelector('header h1 .beat').style.animationDuration = (60 / S.bpm / tsc) + 's';
+  } else { HU.uV.value = HU.uAt.value = HU.uWob.value = 0; S.lastPulse = 0; }
+  HU.uAmp.value = S.amp; HU.uTime.value += dt * tsc; HU.uPhase.value = beatPhase;
+  // breathing
+  const brRate = S.bpm < 65 ? 10 : S.bpm < 115 ? 16 : 28;
+  S.brPh += dt * tsc * brRate / 60; HU.uBr.value = 0.5 - 0.5 * Math.cos(S.brPh * Math.PI * 2);
+  flowBoost *= tsc;
+  updateIcon(dt); updateFist(dt); drawEcg(dt, tsc);
+  if (ALV && S.alv) ALV.update(dt, HU.uBr.value, tsc);
+  // cut animation
+  if (S.cut !== S.cutTarget) { S.cut += Math.sign(S.cutTarget - S.cut) * dt * 0.8; S.cut = THREE.MathUtils.clamp(S.cut, 0, 1);
+    if (Math.abs(S.cut - S.cutTarget) < 0.01) { S.cut = S.cutTarget; applyLook(); } }
+  setCutAmount(S.cut);
+  updateFlight(dt);
+  if (S.ride) updateRide(dt * tsc, flowBoost / Math.max(tsc, 0.01)); else controls.update();
+  updateCells(dt, flowBoost);
+  updateHighlight(dt); drawConfetti(dt);
+  renderer.render(scene, camera);
+});
+window.__heart = { setPhase: p => { beatPhase = p; }, startSlowBeat, setElec, enterAlv, exitAlv, toggleFist, HU, get ALV() { return ALV; }, skip: () => { let i = 0; while (flight && i++ < 500) updateFlight(0.05); }, toggleIcon, S, enterRoom, startRide, setTool, camera, controls, mission, routes, meshes, setCutAmount };
+</script>
+</body>
+</html>
