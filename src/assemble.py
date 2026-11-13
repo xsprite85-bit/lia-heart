@@ -24,6 +24,9 @@ for m in re.finditer(r"'((?:[^'\\\n]|\\.)*)'", js):
 vl = '<script id="voice-lines" type="application/json">' + json.dumps(lines, ensure_ascii=False) + '</script>\n'
 t = t.replace('<script type="importmap">', vl + '<script type="importmap">', 1)
 t = t.replace('/*__MODULES__*/', mods)
+t = t.replace('__FAVICON__', base64.b64encode(open('icons/favicon-48.png','rb').read()).decode())
+t = t.replace('__APPLEICON__', base64.b64encode(open('icons/apple-touch-icon.png','rb').read()).decode())
+t = t.replace('__LOGO_SVG__', base64.b64encode(open('logo.svg','rb').read()).decode())
 t = t.replace('__THREE__', base).replace('__DATA__', json.dumps(d, separators=(',', ':'))).replace('__GLB__', base64.b64encode(open('heart_mo.glb', 'rb').read()).decode())
 open(out, 'w', encoding='utf-8').write(t)
 print(out, len(t)//1024, 'KB', len(lines), 'voice lines')

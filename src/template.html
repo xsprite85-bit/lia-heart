@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>הלב של ליה</title>
+<meta name="theme-color" content="#c9184a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="הלב של ליה">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="data:image/png;base64,__FAVICON__">
+<link rel="apple-touch-icon" href="data:image/png;base64,__APPLEICON__">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -48,7 +55,7 @@
   .tool:active .ic { transform:scale(.9); }
   .tool span { text-shadow:0 1px 6px #000; white-space:nowrap; }
   @media (max-width:560px) { .tool { width:auto; font-size:11.5px; } .tool .ic { width:48px; height:48px; font-size:24px; } #tools { gap:4px; padding-top:6px; } .grp { width:64px; font-size:12px; } .grp .ic { width:52px; height:52px; font-size:26px; } .tool { width:62px; font-size:11.5px; } .tool .ic { width:50px; height:50px; font-size:25px; } #tray { gap:4px; padding:8px; bottom:calc(max(12px, env(safe-area-inset-bottom)) + 84px); }
-    #ctrl { bottom:128px; } #ridebar, #exitbtn, #drum { bottom:140px !important; } header h1 { font-size:20px; } .chip { padding:6px 10px; font-size:16px; } .chip.stars { font-size:16px; } }
+    #ctrl { bottom:128px; } #bpBox { bottom:128px; width:min(58vw,230px); } #volBox { bottom:128px; } #ridebar, #exitbtn, #drum { bottom:140px !important; } header h1 { font-size:18px; white-space:nowrap; } .topbtns { gap:5px; } .chip { padding:6px 8px; font-size:15px; } .chip.stars { font-size:15px; } }
 
   #bubble { position:fixed; left:50%; top:calc(max(10px, env(safe-area-inset-top)) + 52px); transform:translateX(-50%) translateY(-12px); width:min(94vw,600px);
     background:rgba(255,255,255,.93); color:#2b1340; border-radius:18px; padding:8px 14px 8px 50px; font:500 clamp(14px,3.6vw,18px)/1.35 Rubik;
@@ -114,6 +121,28 @@
   #ridebar .col { flex:1; display:flex; flex-direction:column; gap:6px; }
   #ridebar .stage { font:700 16px Rubik; text-align:center; }
   #ridebar .stop.alt { background:#ffffff26; font-size:18px; padding:6px 10px; }
+  #bpBox { position:fixed; right:12px; bottom:118px; width:min(64vw,250px); background:rgba(20,14,44,.9); border-radius:18px; padding:8px 10px 10px; z-index:6; display:none; box-shadow:0 8px 24px #0009, inset 0 0 0 2px #ffffff22; }
+  #bpBox.show { display:block; }
+  #bpBox .bpTop { display:flex; justify-content:space-between; align-items:center; font-size:16px; }
+  #bpBox .bpTop button { border:0; background:#ffffff22; color:#fff; width:28px; height:28px; border-radius:50%; cursor:pointer; }
+  #bpBox .dial { width:100%; display:block; }
+  #bpBox .bpNums { text-align:center; font:900 34px Rubik; line-height:1; margin-top:-6px; }
+  #bpBox .bpNums small { opacity:.6; margin:0 4px; } #bpBox #bpSys { color:#ff8787; } #bpBox #bpDia { color:#74c0fc; }
+  #bpBox .bpNow { text-align:center; font-size:13px; opacity:.85; margin:2px 0 6px; }
+  #bpBox .bpBtns { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  #bpBox .bpBtns button { border:0; border-radius:12px; background:#ffffff1f; color:#fff; font:700 13px Rubik; padding:7px 4px; cursor:pointer; }
+  #volBox { position:fixed; right:12px; bottom:118px; width:min(70vw,270px); background:rgba(20,14,44,.9); border-radius:18px; padding:8px 10px 10px; z-index:6; display:none; box-shadow:0 8px 24px #0009, inset 0 0 0 2px #ffffff22; }
+  #volBox.show { display:block; }
+  #volBox .bpTop { display:flex; justify-content:space-between; align-items:center; font-size:16px; margin-bottom:4px; }
+  #volBox .bpTop button { border:0; background:#ffffff22; color:#fff; width:28px; height:28px; border-radius:50%; cursor:pointer; }
+  #volBox .vrow { display:flex; align-items:center; gap:6px; margin:4px 0; font-size:14px; }
+  #volBox .who { width:58px; } #volBox .btls { flex:1; display:flex; gap:3px; } #volBox .btl { width:20px; height:42px; color:#ffffffaa; }
+  #volBox .amt { font-weight:900; font-size:15px; }
+  #volBox .vpump, #volBox .vnow { text-align:center; font-size:14px; margin:6px 0; line-height:1.4; } #volBox b { color:#ff8787; font-size:1.15em; }
+  #volBox .bpBtns { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  #volBox .bpBtns button { border:0; border-radius:12px; background:#ffffff1f; color:#fff; font:700 13px Rubik; padding:7px 4px; cursor:pointer; }
+  body.light #volBox { background:rgba(255,255,255,.95); color:#2b1340; box-shadow:0 10px 30px #b48ab055; } body.light #volBox .btl { color:#2b134099; }
+  body.light #volBox .bpBtns button, body.light #volBox .bpTop button { background:#f3ecff; color:#2b1340; } body.light #volBox b { color:#c9184a; }
   #ecgBox { position:fixed; left:12px; bottom:118px; width:min(64vw,300px); background:rgba(6,20,14,.86); border-radius:16px; padding:6px 8px 6px; z-index:6;
     box-shadow:0 6px 20px #0008, inset 0 0 0 2px #2bd47a44; display:none; }
   #ecgBox.show { display:block; }
@@ -136,6 +165,7 @@
   #start.hide { opacity:0; pointer-events:none; }
   #start .card { text-align:center; padding:20px; }
   #start .big { font-size:110px; animation: hb 1.1s infinite; display:inline-block; filter: drop-shadow(0 0 30px #ff3c7a); }
+  #start .logo { width:150px; height:150px; border-radius:36px; box-shadow:0 12px 40px #ff3c7a66; filter:none; }
   #start h2 { font-size:clamp(30px,8vw,48px); margin:10px 0 6px; font-weight:900; }
   #start p { font-size:20px; opacity:.85; margin:0 0 24px; }
   #start button { border:0; border-radius:999px; font:900 26px Rubik; padding:18px 44px; background:linear-gradient(135deg,#ff5d8f,#c9184a); color:#fff; box-shadow:0 10px 30px #c9184a88; cursor:pointer; }
@@ -148,6 +178,29 @@
   #confetti { position:fixed; inset:0; pointer-events:none; z-index:14; }
   #credit { font-size:13px; opacity:.75; line-height:1.5; text-align:center; margin-top:12px; }
   #credit a { color:#ffd6e0; }
+
+  /* ---- light theme ---- */
+  body.light { --ink:#2b1340; --panel:rgba(255,255,255,.92); color:#2b1340; background: radial-gradient(ellipse at 50% 35%, #ffffff 0%, #fff1f6 45%, #efe6ff 100%); }
+  body.light #bubbles i { background:rgba(255,120,160,.14); }
+  body.light header h1 { text-shadow:none; color:#c9184a; }
+  body.light .chip { color:#2b1340; box-shadow:0 3px 12px #b48ab033; }
+  body.light .chip.stars { color:#3b1d00; }
+  body.light .tool span, body.light .grp span { color:#3a1d4f; text-shadow:none; }
+  body.light .tool .ic, body.light .grp .ic { box-shadow:0 3px 12px #b48ab044, inset 0 0 0 2px #00000010; }
+  body.light .grp.open .ic { color:#fff; }
+  body.light #tray, body.light #ctrl, body.light .pop, body.light #ridebar, body.light #drum, body.light #bpBox { background:rgba(255,255,255,.95); color:#2b1340; box-shadow:0 10px 30px #b48ab055, inset 0 0 0 2px #00000010; }
+  body.light #ctrl .sec, body.light .mission, body.light .quiz .opt, body.light #bpBox .bpBtns button { background:#f3ecff; color:#2b1340; }
+  body.light #ctrl .quick button, body.light #ctrl .sbtn, body.light .pop .close, body.light #ctrl .head button, body.light #bpBox .bpTop button { background:#ece3ff; color:#2b1340; }
+  body.light #ctrl .quick button.on, body.light #ctrl .sbtn.on { background:#ff5d8f; color:#fff; }
+  body.light #ctrl .quick .rb, body.light #ctrl .quick .rr { color:#fff; }
+  body.light #ctrl .quick .rb { background:#364fc7; } body.light #ctrl .quick .rr { background:#c92a2a; }
+  body.light .mission.done { background:#fff3bf; }
+  body.light #bpBox .dial line, body.light #bpBox .dial circle { stroke:#2b1340; fill:#2b1340; }
+  body.light #ridebar .stop.alt { background:#ece3ff; }
+  body.light #start { background: radial-gradient(ellipse at center, #fff5f9f0, #efe6fff8); color:#2b1340; }
+  body.light #toast div { color:#2b1340; text-shadow:0 2px 10px #fff; }
+  body.light #credit a { color:#c9184a; }
+  body.light #bubble { box-shadow:0 6px 22px #b48ab055; border:2px solid #ffd6e4; }
 </style>
 </head>
 <body>
@@ -158,6 +211,7 @@
 <header>
   <h1><span class="beat">❤️</span> הלב של ליה</h1>
   <div class="topbtns">
+    <button class="chip" id="themeBtn" title="רקע בהיר / כהה">☀️</button>
     <button class="chip" id="fsBtn" title="מסך מלא">⛶</button>
     <button class="chip" id="muteBtn" title="קול">🔊</button>
     <button class="chip" id="homeBtn" title="חזרה">🏠</button>
@@ -197,6 +251,23 @@
 </div>
 
 <div id="ridebar"><div class="col"><div class="stage" id="rideStage">📍</div><div class="track"><div class="dot" id="rideDot">🔴</div></div></div><button class="stop alt" id="rideCam" title="מבט">🎥</button><button class="stop" id="rideStop">עצירה</button></div>
+<div id="bpBox">
+  <div class="bpTop"><b>🩺 לחץ דם</b><button id="bpClose">✕</button></div>
+  <svg viewBox="0 0 220 128" class="dial"><defs><linearGradient id="dg" x1="0" x2="1"><stop offset="0" stop-color="#4c6ef5"/><stop offset=".55" stop-color="#40c057"/><stop offset="1" stop-color="#f03e3e"/></linearGradient></defs>
+    <path d="M20 112 A90 90 0 0 1 200 112" stroke="url(#dg)" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <g id="bpTicks"></g><line id="bpNeedle" x1="110" y1="112" x2="110" y2="34" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="110" cy="112" r="9" fill="#fff"/></svg>
+  <div class="bpNums"><span id="bpSys">110</span><small>/</small><span id="bpDia">70</span></div>
+  <div class="bpNow">עכשיו: <b id="bpNow">70</b></div>
+  <div class="bpBtns"><button data-bp="what">מה זה?</button><button data-bp="sys">המספר הגדול</button><button data-bp="dia">המספר הקטן</button><button data-bp="change">מה משנה אותו?</button></div>
+</div>
+<div id="volBox">
+  <div class="bpTop"><b>💧 כמה דם?</b><button id="volClose">✕</button></div>
+  <div class="vrow"><span class="who">👧 ילדה</span><span class="btls"><svg viewBox="0 0 30 64" class="btl"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><clipPath id="c100"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z"/></clipPath><rect x="0" y="10" width="30" height="64" fill="#e8262d" clip-path="url(#c100)"/></svg></span><span class="amt">≈ 1.5 ליטר</span></div>
+  <div class="vrow"><span class="who">👨 מבוגר</span><span class="btls"><svg viewBox="0 0 30 64" class="btl"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><clipPath id="c100"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z"/></clipPath><rect x="0" y="10" width="30" height="64" fill="#e8262d" clip-path="url(#c100)"/></svg><svg viewBox="0 0 30 64" class="btl"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><clipPath id="c100"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z"/></clipPath><rect x="0" y="10" width="30" height="64" fill="#e8262d" clip-path="url(#c100)"/></svg><svg viewBox="0 0 30 64" class="btl"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><clipPath id="c100"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z"/></clipPath><rect x="0" y="10" width="30" height="64" fill="#e8262d" clip-path="url(#c100)"/></svg><svg viewBox="0 0 30 64" class="btl"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><clipPath id="c33"><path d="M11 2h8v8c6 3 8 7 8 12v36a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V22c0-5 2-9 8-12z"/></clipPath><rect x="0" y="46.18" width="30" height="64" fill="#e8262d" clip-path="url(#c33)"/></svg></span><span class="amt">≈ 5 ליטר</span></div>
+  <div class="vpump">הלב שלך שולח:<br><b id="volMin">2.6</b> ליטר בדקה · <b id="volHour">153</b> ליטר בשעה 🛁</div>
+  <div class="vnow">מאז שפתחת את החלון: <b id="volNow">0.00</b> ליטר</div>
+  <div class="bpBtns"><button data-vol="me">כמה דם יש בי?</button><button data-vol="pump">כמה הלב שולח?</button><button data-vol="loop" style="grid-column:1/-1">איך זה מספיק?</button></div>
+</div>
 <div id="ecgBox"><canvas id="ecg" width="520" height="150"></canvas><div class="ecgInfo"><span id="ecgBpm">85</span> ❤️ <small>פעימות בדקה</small></div><div id="ecgCap"></div></div>
 <button id="exitbtn">⬅️ לצאת מהלב</button>
 <div id="drum"><div>תופפי עם הלב! 🥁</div><div class="n" id="drumN">○○○○○○</div></div>
@@ -211,6 +282,8 @@
     <button class="tool" data-t="slowbeat" data-g="beat"><div class="ic">🔬</div><span>פעימה איטית</span></button>
     <button class="tool" data-t="elec" data-g="beat"><div class="ic">⚡</div><span>חשמל הלב</span></button>
     <button class="tool" data-t="flow" data-g="blood"><div class="ic">🩸</div><span>זרימת דם</span></button>
+    <button class="tool" data-t="bp" data-g="blood"><div class="ic">🩺</div><span>לחץ דם</span></button>
+    <button class="tool" data-t="vol" data-g="blood"><div class="ic">💧</div><span>כמה דם?</span></button>
     <button class="tool" data-t="ride" data-g="blood"><div class="ic">🚀</div><span>מסע בדם</span></button>
     <button class="tool" data-t="lungs" data-g="breath"><div class="ic">🫁</div><span>ריאות</span></button>
     <button class="tool" data-t="alv" data-g="breath"><div class="ic">🫧</div><span>בועיות</span></button>
@@ -260,7 +333,7 @@
 <div id="toast">⭐<div id="toastText">כל הכבוד!</div></div>
 
 <div id="start"><div class="card">
-  <div class="big">❤️</div>
+  <img class="big logo" src="data:image/svg+xml;base64,__LOGO_SVG__" alt="">
   <h2>ליה, בואי לחקור את הלב!</h2>
   <p>לב אמיתי של בן אדם — אפשר לסובב, להיכנס פנימה ולרכב על טיפת דם</p>
   <button id="goBtn" disabled>יוצאים לדרך!</button>
@@ -417,7 +490,7 @@ const ROOMS = {
 };
 
 // ---------------- state ----------------
-const S = { glass: 0, elec: false, slow: false, guide: null, fist: false, alv: null, brPh: 0, beat: true, bpm: 85, amp: 1, fspeed: 1, iconK: 0, iconT: 0, flow: false, xray: false, cut: 0, cutTarget: 0, lungs: false, inside: null, ride: null, drum: null };
+const S = { vol: false, bp: false, glass: 0, elec: false, slow: false, guide: null, fist: false, alv: null, brPh: 0, beat: true, bpm: 85, amp: 1, fspeed: 1, iconK: 0, iconT: 0, flow: false, xray: false, cut: 0, cutTarget: 0, lungs: false, inside: null, ride: null, drum: null };
 const meshes = {};
 const fresnelU = { value: 0 };
 // ---------------- living heart: shared deformation uniforms ----------------
@@ -425,11 +498,13 @@ const HU = {
   uB: { value: new THREE.Vector3() }, uAxis: { value: new THREE.Vector3(0, -1, 0) }, uL: { value: 8 },
   uV: { value: 0 }, uAt: { value: 0 }, uAmp: { value: 1 }, uTime: { value: 0 }, uWob: { value: 0 },
   uElec: { value: 0 }, uPhase: { value: 0 }, uSA: { value: new THREE.Vector3() }, uAVn: { value: new THREE.Vector3() },
+  uPAmp: { value: 0.05 }, uAVp: { value: new THREE.Vector3() },
   uBr: { value: 0 }, uLR: { value: new THREE.Vector3(-8, 1, -2) }, uLL: { value: new THREE.Vector3(6, 1, -2) },
 };
 const GLSL_COMMON = `
 uniform vec3 uB; uniform vec3 uAxis; uniform float uL; uniform float uV; uniform float uAt; uniform float uAmp; uniform float uTime; uniform float uWob;
 uniform float uBr; uniform vec3 uLR; uniform vec3 uLL;
+uniform float uPAmp; uniform vec3 uAVp; uniform float uPhase;
 uniform vec3 uVC; uniform vec3 uVA; uniform float uVT; uniform float uVOpen; uniform float uVKind;
 varying vec3 vRestW;
 vec3 rotAx(vec3 v, vec3 k, float a){ float c = cos(a), s = sin(a); return v*c + cross(k, v)*s + k*dot(k, v)*(1.0 - c); }
@@ -456,6 +531,13 @@ vec3 valveDeform(vec3 p){
   float w = smoothstep(-0.8, 0.4, tn); // semilunar cusps
   return p + r * (uVOpen * 0.6 * w) + uVA * uVOpen * 0.18 * uVT * w;
 }
+float bpCurve(float ph){
+  float up = smoothstep(0.16, 0.27, ph);
+  float down = ph < 0.3 ? 1.0 : exp(-(ph - 0.3) * 3.5);
+  float notch = 0.12 * exp(-pow((ph - 0.47) / 0.03, 2.0));
+  return up * down + notch;
+}
+float pressWave(vec3 p){ return bpCurve(fract(uPhase - distance(p, uAVp) * 0.012 + 1.0)); }
 vec3 lungDeform(vec3 p){
   float side = p.x < -0.5 ? 0.0 : 1.0;
   vec3 c = mix(uLR, uLL, side);
@@ -491,6 +573,7 @@ function setupMat(mat, o) {
         ${o.valve ? 'hwp.xyz = valveDeform(hwp.xyz);' : ''}
         ${o.heart ? 'hwp.xyz = heartDeform(hwp.xyz);' : ''}
         ${o.lung ? 'hwp.xyz = lungDeform(hwp.xyz);' : ''}
+        ${o.pulse ? 'hwp.xyz += normalize((modelMatrix * vec4(objectNormal, 0.0)).xyz) * pressWave(hwp.xyz) * uPAmp * ' + o.pulse.toFixed(2) + ';' : ''}
         vec4 mvPosition = viewMatrix * hwp;
         gl_Position = projectionMatrix * mvPosition;`);
     let fs = 'varying vec3 vRestW;\nuniform float uFresnel;\nuniform vec3 uB; uniform vec3 uAxis; uniform float uL;\n' + (o.elec ? GLSL_ELEC : '') + '\n' + sh.fragmentShader;
@@ -501,7 +584,7 @@ function setupMat(mat, o) {
       gl_FragColor.a = mix(gl_FragColor.a, min(1.0, gl_FragColor.a + 0.75), uFresnel * pow(frim, 2.2));`);
     sh.fragmentShader = fs;
   };
-  const key = JSON.stringify({ h: !!o.heart, l: !!o.lung, f: !!o.fresnel, e: !!o.elec, v: o.valve ? o.valve.kind : 0, id: o.id || '' });
+  const key = JSON.stringify({ p: o.pulse || 0, h: !!o.heart, l: !!o.lung, f: !!o.fresnel, e: !!o.elec, v: o.valve ? o.valve.kind : 0, id: o.id || '' });
   mat.customProgramCacheKey = () => key;
 }
 // JS mirror of lungDeform, so blood cells follow the breathing lungs
@@ -710,7 +793,10 @@ function initLiving(B) {
   setupMat(meshes.mitral.material, { heart: 1, id: 'mit', valve: { kind: 1, c: V(A.mit), a: mitAx.clone().normalize(), t: mitAx.length() * 0.42, open: valveOpen.mit } });
   const pv = V(DATA.valves.pulmonary), pa3 = V(DATA.paths.pa_RU[4]);
   setupMat(meshes.pulmvalve.material, { heart: 1, id: 'pulm', valve: { kind: 2, c: pv, a: pa3.sub(pv).normalize(), t: 1.0, open: valveOpen.pulm } });
-  for (const k of ['lungs', 'pulmart', 'pulmvein']) setupMat(meshes[k].material, { lung: 1, id: k });
+  for (const k of ['lungs', 'pulmvein']) setupMat(meshes[k].material, { lung: 1, id: k });
+  setupMat(meshes.pulmart.material, { lung: 1, pulse: 0.45, id: 'pulmart' });
+  for (const k of ['aorta', 'headarteries']) setupMat(meshes[k].material, { pulse: 1, id: k });
+  HU.uAVp.value.copy(V(DATA.valves.aortic));
 }
 const sstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const avOpen = ph => THREE.MathUtils.clamp(1 - sstep(0.13, 0.17, ph) + sstep(0.46, 0.55, ph), 0, 1);
@@ -781,7 +867,70 @@ function guideTick(dt) { // returns false while the narrator holds the beat
   return true;
 }
 
+// ---------------- blood pressure ----------------
+function bpCurveJS(ph) { const up = sstep(0.16, 0.27, ph), down = ph < 0.3 ? 1 : Math.exp(-(ph - 0.3) * 3.5); return up * down + 0.12 * Math.exp(-(((ph - 0.47) / 0.03) ** 2)); }
+function bpRange() { return S.bpm < 65 ? [95, 60] : S.bpm < 115 ? [105, 65] : [125, 70]; }
+(function ticks() { let g = ''; for (let v = 40; v <= 160; v += 20) { const a = Math.PI * (1 - (v - 40) / 120); const x1 = 110 + Math.cos(a) * 78, y1 = 112 - Math.sin(a) * 78, x2 = 110 + Math.cos(a) * 64, y2 = 112 - Math.sin(a) * 64;
+  g += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="2" opacity=".6"/><text x="${110 + Math.cos(a) * 52}" y="${116 - Math.sin(a) * 52}" font-size="10" text-anchor="middle" fill="currentColor" opacity=".75">${v}</text>`; }
+  $('#bpTicks').innerHTML = g; })();
+let bpNowShown = -1;
+function updateBP() {
+  if (!S.bp) return;
+  const [sys, dia] = bpRange(); const v = dia + (sys - dia) * Math.min(1, bpCurveJS(beatPhase));
+  const a = Math.PI * (1 - (THREE.MathUtils.clamp(v, 40, 160) - 40) / 120);
+  const n = $('#bpNeedle'); n.setAttribute('x2', 110 + Math.cos(a) * 74); n.setAttribute('y2', 112 - Math.sin(a) * 74);
+  const r = Math.round(v); if (r !== bpNowShown) { bpNowShown = r; $('#bpNow').textContent = r; }
+  $('#bpSys').textContent = sys; $('#bpDia').textContent = dia;
+}
+const BP_TALK = {
+  what: ['מה זה לחץ דם? 🩺', 'כשהלב נלחץ, הוא דוחף את הדם חזק לתוך הצינורות — והדם לוחץ על הקירות שלהם. תראי איך הצינורות האדומים מתנפחים קצת בכל פעימה! זה לחץ הדם. כמו צינור השקיה בגינה: כשפותחים את הברז, הצינור נהיה מלא וקשה.'],
+  sys: ['המספר הגדול', 'המספר הגדול מראה כמה חזק הדם לוחץ ברגע שהלב נלחץ ודוחף. אצל ילדים הוא בערך מאה.'],
+  dia: ['המספר הקטן', 'המספר הקטן מראה כמה הדם עוד לוחץ כשהלב נח בין פעימה לפעימה. גם אז הדם ממשיך לזרום — הצינורות לא מתרוקנים אף פעם.'],
+  change: ['מה משנה את הלחץ?', 'כשרצים וקופצים — הלחץ עולה, כדי לשלוח יותר דם לשרירים. כשישנים — הוא יורד. אצל הרופא מודדים אותו עם שרוול שמתנפח על היד — זה רק לוחץ קצת, ולא כואב!'],
+};
+function setBP(on) {
+  if (on && S.vol) setVol(false);
+  S.bp = on; $('#bpBox').classList.toggle('show', on); document.querySelector('.tool[data-t="bp"]').classList.toggle('on', on);
+  HU.uPAmp.value = on ? 0.2 : 0.05;
+  if (on) {
+    if (S.ride) stopRide(false); if (S.inside) exitRoom(); if (S.alv) exitAlv();
+    setTool('beat', true); if (S.glass > 0.5) { S.glass = 0.35; $('#glass').value = 0.35; applyLook(); }
+    const t = new THREE.Vector3(-0.5, 5.5, 0); const d = HOME.pos.distanceTo(HOME.target) * 1.05;
+    flyTo(t.clone().add(new THREE.Vector3(0.25, 0.1, 1).normalize().multiplyScalar(d)), t, 1.4);
+    say(...BP_TALK.what); mission('bp');
+  }
+}
+document.querySelectorAll('[data-bp]').forEach(b => b.onclick = () => { audio(); say(...BP_TALK[b.dataset.bp]); });
+$('#bpClose').onclick = () => setBP(false);
+
+// ---------------- how much blood? ----------------
+let volLiters = 0;
+const VOL_TALK = {
+  me: ['כמה דם יש בגוף? 💧', 'בגוף של ילדה בגילך יש בערך ליטר וחצי דם — כמו בקבוק מים גדול אחד. אצל אבא ואמא יש בערך חמישה ליטר — כמו שלושה בקבוקים וחצי!'],
+  pump: ['כמה הלב שולח?', 'בכל פעימה הלב שלך שולח בערך שתי כפות של דם. בדקה זה בערך שני ליטר וחצי, ובשעה — בערך מאה וחמישים ליטר. זה כמו אמבטיה מלאה!'],
+  loop: ['שוב ושוב', 'יש בגוף רק ליטר וחצי דם, אבל הלב שולח מאה וחמישים ליטר בשעה. איך זה יכול להיות? כי זה אותו דם שעושה סיבוב — שוב ושוב — בערך פעם בדקה!'],
+};
+function setVol(on) {
+  S.vol = on; $('#volBox').classList.toggle('show', on); document.querySelector('.tool[data-t="vol"]').classList.toggle('on', on);
+  if (on) { if (S.bp) setBP(false); volLiters = 0; say(...VOL_TALK.me); mission('vol'); }
+}
+function updateVol(dt, tsc) {
+  if (!S.vol || !S.beat) return;
+  volLiters += dt * tsc * S.bpm * 0.03 / 60;          // ~30 ml per beat (child)
+  $('#volNow').textContent = volLiters < 10 ? volLiters.toFixed(2) : volLiters.toFixed(1);
+  const perMin = S.bpm * 0.03; $('#volMin').textContent = perMin.toFixed(1); $('#volHour').textContent = Math.round(perMin * 60);
+}
+document.querySelectorAll('[data-vol]').forEach(b => b.onclick = () => { audio(); say(...VOL_TALK[b.dataset.vol]); });
+$('#volClose').onclick = () => setVol(false);
+
+// ---------------- light / dark theme ----------------
+function setTheme(light) { document.body.classList.toggle('light', light); $('#themeBtn').textContent = light ? '🌙' : '☀️'; store.set('theme', light ? 'light' : 'dark');
+  document.querySelector('meta[name=theme-color]').setAttribute('content', light ? '#fff1f6' : '#1a1233'); }
+setTheme(store.get('theme', 'dark') === 'light');
+$('#themeBtn').onclick = () => { audio(); setTheme(!document.body.classList.contains('light')); };
+
 // ---------------- the fist (size comparison) ----------------
+
 let fist = null;
 function toggleFist() {
   if (typeof buildFist !== 'function') return;
@@ -1054,6 +1203,8 @@ document.querySelectorAll('.tool').forEach(b => b.onclick = () => {
   if (t === 'slowbeat') { if (S.guide) { stopSlowBeat(false); return; } startSlowBeat(); return; }
   if (t === 'alv') { if (S.alv) { exitAlv(); return; } if (!enterAlv(false)) say('', 'עוד רגע...'); return; }
   if (t === 'fist') { toggleFist(); return; }
+  if (t === 'bp') { setBP(!S.bp); return; }
+  if (t === 'vol') { setVol(!S.vol); return; }
   if (t === 'flow') { setTool('flow', on); if (on) { say('זרימת הדם 🩸', 'אלה תאי דם קטנטנים! הכחולים עייפים וצריכים חמצן, האדומים מלאים בחמצן. עקבי אחריהם — לאן הם הולכים?'); mission('flow'); } return; }
   if (t === 'xray') { setTool('xray', on); if (on) { say('לב מזכוכית 👻', 'עכשיו הלב שקוף כמו זכוכית! רואים את החדרים, את הדלתות ואת השרירים הקטנים שבפנים. אפשר לשנות כמה שקוף בלוח השליטה 🎛️.'); if (!S.flow) setTool('flow', true); mission('xray'); } return; }
   if (t === 'lungs') { setTool('lungs', on); if (on) { say('הריאות 🫁', 'הלב גר בין שתי הריאות! תראי — הן מתנפחות כשנושמים פנימה ומתכווצות כשנושפים. לחצי על 🫧 כדי להגדיל ולראות איך החמצן נכנס לדם.'); mission('lungs'); } return; }
@@ -1123,18 +1274,21 @@ const MISSIONS = [
   { id: 'slowbeat', e: '🔬', t: 'צפי בפעימה אחת שלמה בהילוך איטי' },
   { id: 'fist', e: '✊', t: 'גלי בגודל של מה הלב שלך' },
   { id: 'ride', e: '🚀', t: 'רכבי על תא דם בסיבוב שלם' },
+  { id: 'bp', e: '🩺', t: 'גלי מה זה לחץ דם' },
+  { id: 'vol', e: '💧', t: 'גלי כמה דם יש בגוף שלך' },
   { id: 'facts', e: '💡', t: 'שמעי שלוש עובדות מדהימות' },
   { id: 'drum', e: '🥁', t: 'תופפי יחד עם הלב', go: () => startDrum() },
   { id: 'q1', e: '🤔', t: 'חידה: כמה חדרים יש בלב?', go: () => quiz('q1') },
   { id: 'q2', e: '🤔', t: 'חידה: איפה הדם מקבל חמצן?', go: () => quiz('q2') },
   { id: 'q3', e: '🤔', t: 'חידה: איזה צד של הלב שולח דם לכל הגוף?', go: () => quiz('q3') },
+  { id: 'q4', e: '🤔', t: 'חידה: מתי לחץ הדם הכי גבוה?', go: () => quiz('q4') },
 ];
 const done = new Set(store.get('done', []));
 const HINTS = { rotate: { say: 'שימי אצבע על הלב והזיזי אותה לצדדים.' }, zoom: { say: 'שימי שתי אצבעות על המסך ופתחי אותן — כמו בתמונות.' },
   aorta: { part: 'aorta' }, vena: { part: 'svc' }, coronary: { part: 'coronaryart' }, ctrl: { tool: 'ctrl' }, run: { tool: 'ctrl' }, sleep: { tool: 'ctrl' }, strong: { tool: 'ctrl' },
   flow: { tool: 'flow' }, icon: { tool: 'icon' }, xray: { tool: 'xray' }, valve: { tool: 'xray', say: 'הפכי את הלב לשקוף, ואז לחצי על הדלתות הלבנות שבפנים.' },
   cut: { tool: 'cut' }, room_LV: { tool: 'rooms' }, allrooms: { tool: 'rooms' }, lungs: { tool: 'lungs' }, alveoli: { tool: 'alv' }, elec: { tool: 'elec' },
-  slowbeat: { tool: 'slowbeat' }, fist: { tool: 'fist' }, ride: { tool: 'ride' }, facts: { tool: 'fact' } };
+  slowbeat: { tool: 'slowbeat' }, fist: { tool: 'fist' }, bp: { tool: 'bp' }, vol: { tool: 'vol' }, ride: { tool: 'ride' }, facts: { tool: 'fact' } };
 function showHint(m) {
   closePops(); const h = HINTS[m.id] || {};
   if (h.tool) { const b = document.querySelector(`.tool[data-t="${h.tool}"]`); if (b) { openTray(b.dataset.g); b.classList.add('hint'); setTimeout(() => b.classList.remove('hint'), 4500); } }
@@ -1170,6 +1324,7 @@ $('#resetStars').onclick = () => { done.clear(); store.set('done', []); updStars
 const QUIZ = {
   q1: { q: 'כמה חדרים יש בלב של בן אדם?', o: [['שניים', '✌️'], ['ארבעה', '🖐️'], ['עשרה', '🙌']], a: 1, yes: 'נכון! ארבעה חדרים: שני פרוזדורים למעלה ושני חדרים למטה.' },
   q2: { q: 'איפה הדם מקבל חמצן?', o: [['ברגליים', '🦶'], ['בריאות', '🫁'], ['באוזניים', '👂']], a: 1, yes: 'נכון! בריאות, כשאנחנו נושמים — הדם לוקח חמצן מהאוויר.' },
+  q4: { q: 'מתי לחץ הדם הכי גבוה?', o: [['כשהלב נלחץ ודוחף', '💪'], ['כשהלב נח', '😌']], a: 0, yes: 'נכון! כשהלב נלחץ הוא דוחף את הדם חזק — זה המספר הגדול.' },
   q3: { q: 'איזה צד של הלב שולח דם אדום לכל הגוף?', o: [['הצד השמאלי', '🔴'], ['הצד הימני', '🔵']], a: 0, yes: 'נכון! החדר השמאלי, הכי חזק — דרך אבי העורקים.' },
 };
 function quiz(id) {
@@ -1244,7 +1399,7 @@ renderer.setAnimationLoop(() => {
   const brRate = S.bpm < 65 ? 10 : S.bpm < 115 ? 16 : 28;
   S.brPh += dt * tsc * brRate / 60; HU.uBr.value = 0.5 - 0.5 * Math.cos(S.brPh * Math.PI * 2);
   flowBoost *= tsc;
-  updateIcon(dt); updateFist(dt); drawEcg(dt, tsc);
+  updateIcon(dt); updateFist(dt); drawEcg(dt, tsc); updateBP(); updateVol(dt, tsc);
   if (ALV && S.alv) ALV.update(dt, HU.uBr.value, tsc);
   // cut animation
   if (S.cut !== S.cutTarget) { S.cut += Math.sign(S.cutTarget - S.cut) * dt * 0.8; S.cut = THREE.MathUtils.clamp(S.cut, 0, 1);
@@ -1256,7 +1411,8 @@ renderer.setAnimationLoop(() => {
   updateHighlight(dt); drawConfetti(dt);
   renderer.render(scene, camera);
 });
-window.__heart = { setPhase: p => { beatPhase = p; }, startSlowBeat, setElec, enterAlv, exitAlv, toggleFist, HU, get ALV() { return ALV; }, skip: () => { let i = 0; while (flight && i++ < 500) updateFlight(0.05); }, toggleIcon, S, enterRoom, startRide, setTool, camera, controls, mission, routes, meshes, setCutAmount };
+if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+window.__heart = { setVol, setBP, setTheme,  setPhase: p => { beatPhase = p; }, startSlowBeat, setElec, enterAlv, exitAlv, toggleFist, HU, get ALV() { return ALV; }, skip: () => { let i = 0; while (flight && i++ < 500) updateFlight(0.05); }, toggleIcon, S, enterRoom, startRide, setTool, camera, controls, mission, routes, meshes, setCutAmount };
 </script>
 </body>
 </html>
