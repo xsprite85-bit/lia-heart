@@ -11,9 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="data:image/png;base64,__FAVICON__">
 <link rel="apple-touch-icon" href="data:image/png;base64,__APPLEICON__">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
+/*__FONTS__*/
   :root { --ink:#fff; --panel:rgba(20,16,40,.78); --gold:#ffd43b; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; }
   html,body { margin:0; height:100%; overflow:hidden; font-family:'Rubik',system-ui,sans-serif; color:var(--ink);
@@ -54,6 +53,7 @@
   .tool.on .ic { background: linear-gradient(135deg,#ff5d8f,#c9184a); box-shadow:0 0 0 3px #ffd6e0, 0 6px 22px #ff3c7a88; }
   .tool:active .ic { transform:scale(.9); }
   .tool span { text-shadow:0 1px 6px #000; white-space:nowrap; }
+  .tool span { white-space:normal; text-align:center; line-height:1.1; max-width:100%; }
   @media (max-width:560px) { .tool { width:auto; font-size:11.5px; } .tool .ic { width:48px; height:48px; font-size:24px; } #tools { gap:4px; padding-top:6px; } .grp { width:64px; font-size:12px; } .grp .ic { width:52px; height:52px; font-size:26px; } .tool { width:62px; font-size:11.5px; } .tool .ic { width:50px; height:50px; font-size:25px; } #tray { gap:4px; padding:8px; bottom:calc(max(12px, env(safe-area-inset-bottom)) + 84px); }
     #ctrl { bottom:128px; } #bpBox { bottom:128px; width:min(58vw,230px); } #volBox { bottom:128px; } #ridebar, #exitbtn, #drum { bottom:140px !important; } header h1 { font-size:18px; white-space:nowrap; } .topbtns { gap:5px; } .chip { padding:6px 8px; font-size:15px; } .chip.stars { font-size:15px; } }
 
@@ -67,11 +67,12 @@
   #bubble .say { position:absolute; left:8px; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:0;
     background:#ffe3ec; font-size:18px; cursor:pointer; }
 
+  .pop { z-index:30 !important; }
   .pop { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.9); opacity:0; pointer-events:none; transition:.25s;
     width:min(94vw,560px); max-height:80vh; overflow:auto; background:#1f1640f2; border-radius:26px; padding:18px; z-index:10;
     box-shadow:0 20px 60px #000c, inset 0 0 0 2px #ffffff22; }
   .pop.show { opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
-  .pop h2 { margin:0 0 12px; font-size:24px; font-weight:900; text-align:center; }
+  .pop h2 { margin:0 0 12px; font-size:24px; font-weight:900; text-align:center; padding:0 40px; }
   .pop .close { position:absolute; top:10px; left:12px; width:42px; height:42px; border-radius:50%; border:0; background:#ffffff22; color:#fff; font-size:22px; cursor:pointer; }
   .rooms { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .room { border:0; border-radius:20px; padding:16px 10px; color:#fff; font:900 19px Rubik; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; }
@@ -152,7 +153,7 @@
   #ecgCap { font:700 14px Rubik; color:#d3ffe4; min-height:18px; text-align:center; }
   .tool.hint .ic { animation: hintp .7s ease-in-out 6; box-shadow:0 0 0 4px #ffd43b, 0 0 26px #ffd43b; }
   @keyframes hintp { 50% { transform:scale(1.18); } }
-  #ridebar .track { flex:1; height:12px; border-radius:99px; background:linear-gradient(270deg,#4c6ef5 0%,#4c6ef5 38%,#f03e3e 52%,#f03e3e 100%); position:relative; }
+  #ridebar .track { flex:none; height:12px; border-radius:99px; background:linear-gradient(270deg,#4c6ef5 0%,#4c6ef5 38%,#f03e3e 52%,#f03e3e 100%); position:relative; }
   #ridebar .dot { position:absolute; top:50%; width:24px; height:24px; margin-top:-12px; border-radius:50%; background:#fff; box-shadow:0 0 12px #fff; right:0; transform:translateX(50%); font-size:15px; display:grid; place-items:center; }
   #ridebar .stop, #exitbtn { border:0; border-radius:999px; background:#ff5d8f; color:#fff; font:700 16px Rubik; padding:8px 14px; cursor:pointer; }
   #exitbtn { position:fixed; top:auto; bottom:170px; left:50%; transform:translateX(-50%); z-index:6; display:none; font-size:19px; padding:10px 20px; box-shadow:0 6px 20px #0008; }
@@ -201,6 +202,83 @@
   body.light #toast div { color:#2b1340; text-shadow:0 2px 10px #fff; }
   body.light #credit a { color:#c9184a; }
   body.light #bubble { box-shadow:0 6px 22px #b48ab055; border:2px solid #ffd6e4; }
+
+  /* ---- profiles, parents, new tools ---- */
+  header h1 { cursor:pointer; }
+  #profRow { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:0 0 18px; }
+  #profRow .pf { border:0; border-radius:20px; background:#ffffff1c; color:inherit; font:700 17px Rubik; padding:8px 14px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:76px; box-shadow:none; }
+  #profRow .pf .e { font-size:34px; }
+  #profRow .pf.on { background:linear-gradient(135deg,#ff5d8f,#c9184a); color:#fff; box-shadow:0 6px 20px #c9184a66; }
+  #profRow .pf.add { opacity:.8; font-size:14px; }
+  #start .startLinks { display:flex; gap:10px; justify-content:center; margin-top:18px; }
+  #start .startLinks button { font:700 15px Rubik; padding:8px 14px; background:#ffffff1c; box-shadow:none; color:inherit; }
+  .pop .fl { display:block; font:700 16px Rubik; margin:12px 0 6px; }
+  .pop .fl small { font-weight:500; opacity:.75; font-size:13px; }
+  .pop input:not([type=range]) { display:block; width:100%; margin-top:6px; font:500 20px Rubik; padding:10px 12px; border-radius:14px; border:2px solid #ffffff33; background:#ffffff14; color:inherit; user-select:text; -webkit-user-select:text; }
+  .pop input[type=range] { width:100%; accent-color:#ff5d8f; height:32px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chips button { border:0; border-radius:99px; background:#ffffff1c; color:inherit; font:500 14px Rubik; padding:4px 10px; cursor:pointer; }
+  #pfSug { max-height:96px; overflow:auto; }
+  .chips.emo button { font-size:28px; padding:4px 8px; border-radius:14px; }
+  .chips button.on, .seg button.on { background:#ff5d8f; color:#fff; }
+  .seg { display:flex; gap:6px; }
+  .seg button { flex:1; border:0; border-radius:14px; background:#ffffff1c; color:inherit; font:700 17px Rubik; padding:10px 6px; cursor:pointer; }
+  .pop .go { display:inline-block; text-decoration:none; border:0; border-radius:14px; background:#ff5d8f; color:#fff; font:700 16px Rubik; padding:9px 14px; cursor:pointer; margin-top:6px; }
+  .pop .go.big { font-size:20px; padding:12px 22px; }
+  .pop .go.danger { background:#ffffff22; }
+  .pop .row2 { display:flex; gap:10px; justify-content:center; margin-top:14px; }
+  .pop .lvl { font-size:14px; opacity:.8; margin-top:2px; }
+  .pop .privNote { font-size:13px; opacity:.8; margin-top:12px; text-align:center; }
+  .pop .note { text-align:center; font-size:15px; opacity:.8; margin-top:10px; }
+  .psec { background:#ffffff10; border-radius:16px; padding:10px 12px; margin-bottom:10px; }
+  .psec > b { display:block; font-size:17px; margin-bottom:6px; }
+  .psec .small { font-size:13.5px; line-height:1.55; opacity:.9; }
+  .psec .small a { color:#ffd6e0; }
+  .psec .small p { margin:0 0 6px; }
+  #pList .pi { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #ffffff14; }
+  #pList .pi .e { font-size:26px; } #pList .pi .n { flex:1; font-weight:700; }
+  #pList .pi button { border:0; border-radius:10px; background:#ffffff22; color:inherit; padding:6px 10px; font:500 14px Rubik; cursor:pointer; }
+  .gateQ { text-align:center; font:900 34px Rubik; margin:8px 0; direction:ltr; }
+  #gatePop { text-align:center; } #gatePop input { text-align:center; font-size:28px; direction:ltr; }
+  .gateErr { color:#ff8787; min-height:22px; margin-top:6px; }
+  #rankRow { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:-4px 0 8px; font:700 17px Rubik; }
+  #rankRow .go { margin:0; font-size:14px; padding:7px 10px; white-space:nowrap; }
+  #certImg { width:100%; border-radius:12px; display:block; box-shadow:0 6px 20px #0008; }
+  .certBtns { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+  .animals { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .animals button { border:0; border-radius:18px; background:#ffffff1a; color:inherit; font:700 15px Rubik; padding:10px 4px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .animals button .e { font-size:38px; } .animals button small { font-weight:500; opacity:.8; font-size:12px; }
+  .goodCard { text-align:center; padding:10px; } .goodCard .gE { font-size:84px; } .goodCard .gT { font:700 22px Rubik; margin-top:4px; min-height:56px; }
+  .goodBtns { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .goodBtns button { border:0; border-radius:18px; padding:14px 6px; font:900 19px Rubik; color:#fff; cursor:pointer; }
+  #goodYes { background:#2f9e44; } #goodNo { background:#e8590c; }
+  .goodProg { text-align:center; font-size:22px; letter-spacing:3px; margin-top:10px; }
+  #mineBox, #animalBox { position:fixed; right:12px; bottom:118px; width:min(72vw,270px); background:rgba(20,14,44,.9); border-radius:18px; padding:8px 10px 10px; z-index:6; display:none; box-shadow:0 8px 24px #0009, inset 0 0 0 2px #ffffff22; text-align:center; }
+  #mineBox.show, #animalBox.show { display:block; }
+  #mineBox .bpTop, #animalBox .bpTop { display:flex; justify-content:space-between; align-items:center; font-size:15px; text-align:start; gap:6px; }
+  #mineBox .bpTop button, #animalBox .bpTop button { border:0; background:#ffffff22; color:inherit; width:28px; height:28px; border-radius:50%; cursor:pointer; flex:0 0 auto; }
+  #mineBox .mBig { margin:6px 0 2px; } #mineBox .mBig b { display:block; font:900 30px Rubik; color:#ff8787; direction:ltr; }
+  #mineBox .mBig small { font-size:14px; opacity:.85; }
+  .mRow { font-size:14.5px; margin:4px 0; line-height:1.4; } .mRow b { color:#ff8787; font-size:1.1em; }
+  .mNote { font-size:12px; opacity:.75; margin:4px 0 6px; }
+  #mineBox .bpBtns { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  #mineBox .bpBtns button { border:0; border-radius:12px; background:#ffffff1f; color:inherit; font:700 13px Rubik; padding:7px 4px; cursor:pointer; }
+  #animalBox .anEmo { font-size:64px; line-height:1.1; }
+  #animalBox .anBack { border:0; border-radius:14px; background:#ff5d8f; color:#fff; font:700 15px Rubik; padding:8px 12px; margin-top:6px; cursor:pointer; }
+  body.light #mineBox, body.light #animalBox { background:rgba(255,255,255,.95); color:#2b1340; box-shadow:0 10px 30px #b48ab055; }
+  body.light #mineBox b, body.light .mRow b { color:#c9184a; }
+  body.light #mineBox .bpBtns button, body.light .bpTop button, body.light .chips button, body.light .seg button, body.light .animals button, body.light .psec, body.light #pList .pi button, body.light #profRow .pf, body.light #start .startLinks button { background:#f3ecff; color:#2b1340; }
+  body.light .chips button.on, body.light .seg button.on { background:#ff5d8f; color:#fff; }
+  body.light #profRow .pf.on { background:linear-gradient(135deg,#ff5d8f,#c9184a); color:#fff; }
+  body.light .pop input:not([type=range]) { border-color:#d9c8f5; background:#fff; }
+  body.light .psec .small a { color:#c9184a; }
+  /* eco */
+  body.eco #bubbles { display:none; }
+  /* left-to-right (English) */
+  html[dir=ltr] #ridebar .track { background:linear-gradient(90deg,#4c6ef5 0%,#4c6ef5 38%,#f03e3e 52%,#f03e3e 100%); }
+  html[dir=ltr] #ridebar .dot { right:auto; left:0; transform:translateX(-50%); }
+  html[dir=ltr] #bubble { padding:8px 50px 8px 14px; } html[dir=ltr] #bubble .say { left:auto; right:8px; }
+  html[dir=ltr] .pop .close { left:auto; right:12px; }
 </style>
 </head>
 <body>
@@ -209,7 +287,7 @@
 <canvas id="confetti"></canvas>
 
 <header>
-  <h1><span class="beat">❤️</span> הלב של ליה</h1>
+  <h1 id="titleBtn"><span class="beat">❤️</span> <span id="titleTxt">הלב של ליה</span></h1>
   <div class="topbtns">
     <button class="chip" id="themeBtn" title="רקע בהיר / כהה">☀️</button>
     <button class="chip" id="fsBtn" title="מסך מלא">⛶</button>
@@ -268,6 +346,21 @@
   <div class="vnow">מאז שפתחת את החלון: <b id="volNow">0.00</b> ליטר</div>
   <div class="bpBtns"><button data-vol="me">כמה דם יש בי?</button><button data-vol="pump">כמה הלב שולח?</button><button data-vol="loop" style="grid-column:1/-1">איך זה מספיק?</button></div>
 </div>
+<div id="mineBox">
+  <div class="bpTop"><b id="mineTitle">🎂 הלב שלי מאז שנולדתי</b><button id="mineClose">✕</button></div>
+  <div class="mBig"><b id="mineBeats">0</b><small>פעימות</small></div>
+  <div class="mRow">🩸 <b id="mineLit">0</b> ליטר דם</div>
+  <div class="mRow" id="mineCmp"></div>
+  <div class="mNote" id="mineNote"></div>
+  <div class="bpBtns"><button data-mine="how">איך סופרים?</button><button data-mine="day">ובכל יום?</button></div>
+</div>
+<div id="animalBox">
+  <div class="bpTop"><b id="anTitle"></b><button id="anClose">✕</button></div>
+  <div class="anEmo" id="anEmo"></div>
+  <div class="mRow">💓 <b id="anBpm"></b> פעימות בדקה</div>
+  <div class="mRow" id="anSize"></div>
+  <button class="anBack" id="anBack">❤️ חזרה ללב שלי</button>
+</div>
 <div id="ecgBox"><canvas id="ecg" width="520" height="150"></canvas><div class="ecgInfo"><span id="ecgBpm">85</span> ❤️ <small>פעימות בדקה</small></div><div id="ecgCap"></div></div>
 <button id="exitbtn">⬅️ לצאת מהלב</button>
 <div id="drum"><div>תופפי עם הלב! 🥁</div><div class="n" id="drumN">○○○○○○</div></div>
@@ -281,6 +374,7 @@
     <button class="tool" data-t="ctrl" data-g="beat"><div class="ic">🎛️</div><span>שליטה</span></button>
     <button class="tool" data-t="slowbeat" data-g="beat"><div class="ic">🔬</div><span>פעימה איטית</span></button>
     <button class="tool" data-t="elec" data-g="beat"><div class="ic">⚡</div><span>חשמל הלב</span></button>
+    <button class="tool" data-t="mine" data-g="beat"><div class="ic">🎂</div><span>מאז שנולדתי</span></button>
     <button class="tool" data-t="flow" data-g="blood"><div class="ic">🩸</div><span>זרימת דם</span></button>
     <button class="tool" data-t="bp" data-g="blood"><div class="ic">🩺</div><span>לחץ דם</span></button>
     <button class="tool" data-t="vol" data-g="blood"><div class="ic">💧</div><span>כמה דם?</span></button>
@@ -289,6 +383,8 @@
     <button class="tool" data-t="alv" data-g="breath"><div class="ic">🫧</div><span>בועיות</span></button>
     <button class="tool" data-t="missions" data-g="play"><div class="ic">🎯</div><span>משימות</span></button>
     <button class="tool" data-t="fact" data-g="play"><div class="ic">💡</div><span>הידעת?</span></button>
+    <button class="tool" data-t="animals" data-g="play"><div class="ic">🐘</div><span>חיות</span></button>
+    <button class="tool" data-t="good" data-g="play"><div class="ic">💚</div><span>טוב ללב</span></button>
 </div>
 <nav id="tools">
   <button class="grp" data-g="look"><div class="ic">👀</div><span>להסתכל</span></button>
@@ -313,14 +409,9 @@
 <div class="pop" id="missionsPop">
   <button class="close" data-close>✕</button>
   <h2>משימות של חוקרת לב ⭐</h2>
+  <div id="rankRow"><span id="rankTxt"></span><button class="go" id="certBtn">📜 התעודה שלי</button></div>
   <div class="progress"><i id="progBar"></i></div>
   <div id="missionList"></div>
-  <div id="credit">
-    המודל התלת־ממדי: <b>BodyParts3D</b> — מודל אנטומי אמיתי שנבנה מסריקת MRI של גוף אדם<br>
-    © The Database Center for Life Science, ברישיון CC BY-SA 2.1 JP<br>
-    <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>
-    · <button class="go" id="resetStars" style="border:0;border-radius:10px;background:#ffffff22;color:#fff;font:500 13px Rubik;padding:4px 8px;margin-top:8px;cursor:pointer">להתחיל את המשימות מחדש</button>
-  </div>
 </div>
 
 <div class="pop quiz" id="quizPop">
@@ -330,14 +421,81 @@
   <div class="opts" id="quizOpts"></div>
 </div>
 
+<div class="pop" id="animalsPop">
+  <button class="close" data-close>✕</button>
+  <h2>הלב של מי? 🐾</h2>
+  <div class="animals" id="animalGrid"></div>
+  <div class="note">לחצי על חיה — והלב יפעם בקצב שלה!</div>
+</div>
+
+<div class="pop" id="goodPop">
+  <button class="close" data-close>✕</button>
+  <h2>מה טוב ללב? 💚</h2>
+  <div class="goodCard"><div class="gE" id="goodE"></div><div class="gT" id="goodT"></div></div>
+  <div class="goodBtns"><button id="goodYes">💚 טוב ללב</button><button id="goodNo">🤔 פחות טוב</button></div>
+  <div class="goodProg" id="goodProg"></div>
+</div>
+
+<div class="pop" id="certPop">
+  <button class="close" data-close>✕</button>
+  <h2>התעודה שלי 📜</h2>
+  <img id="certImg" alt="">
+  <div class="certBtns"><a class="go" id="certSave" download="heart-certificate.png">💾 לשמור</a><button class="go" id="certShare">📤 לשתף</button></div>
+</div>
+
+<div class="pop" id="gatePop">
+  <button class="close" data-close>✕</button>
+  <h2>רק להורים 🔒</h2>
+  <div class="gateQ" id="gateQ"></div>
+  <input id="gateA" type="number" inputmode="numeric" autocomplete="off">
+  <button class="go big" id="gateGo">המשך</button>
+  <div class="gateErr" id="gateErr"></div>
+</div>
+
+<div class="pop" id="profPop">
+  <button class="close" data-close>✕</button>
+  <h2 id="profH">ילד או ילדה חדשים</h2>
+  <label class="fl">השם<input id="pfName" maxlength="20" autocomplete="off"></label>
+  <div class="chips" id="pfSug"></div>
+  <div class="fl">בן או בת?</div>
+  <div class="seg" id="pfG"><button data-v="f">👧 בת</button><button data-v="m">👦 בן</button></div>
+  <div class="fl">גיל: <b id="pfAgeV">5</b></div>
+  <input type="range" id="pfAge" min="3" max="14" step="1" value="5">
+  <div class="lvl" id="pfLvl"></div>
+  <div class="fl">דמות</div>
+  <div class="chips emo" id="pfEmo"></div>
+  <label class="fl">תאריך לידה <small>(לא חובה — בשביל "הלב שלי מאז שנולדתי")</small><input id="pfBirth" type="date"></label>
+  <div class="privNote">🔒 הפרטים נשמרים רק בטלפון הזה, ולא נשלחים לשום מקום.</div>
+  <div class="row2"><button class="go big" id="pfSave">שמירה</button><button class="go danger" id="pfDel">מחיקה</button></div>
+</div>
+
+<div class="pop" id="parentPop">
+  <button class="close" data-close>✕</button>
+  <h2>פינת ההורים 👨‍👩‍👧</h2>
+  <div class="psec"><b>👧👦 ילדים</b><div id="pList"></div><button class="go" id="pAdd">➕ להוסיף ילד או ילדה</button></div>
+  <div class="psec"><b>🌐 שפה</b><div class="seg" id="pLang"><button data-v="he">עברית</button><button data-v="en">English</button></div></div>
+  <div class="psec"><b>⚡ ביצועים</b><div class="seg" id="pEco"><button data-v="auto">אוטומטי</button><button data-v="on">חסכוני</button><button data-v="off">מלא</button></div>
+    <div class="small" id="pEcoNow"></div></div>
+  <div class="psec"><b>⭐ משימות</b><button class="go" id="resetStars">להתחיל את המשימות מחדש</button></div>
+  <div class="psec"><b>🩺 חשוב לדעת</b><div class="small">זו אפליקציה ללמידה ולהנאה, ולא כלי רפואי. היא לא מאבחנת ולא נותנת ייעוץ רפואי. המספרים בה הם ממוצעים בקירוב. אם יש שאלה על הבריאות של הילד או הילדה — פנו לרופא.</div></div>
+  <div class="psec"><b>🔒 פרטיות</b><div class="small" id="privText"></div></div>
+  <div class="psec"><b>🎨 קרדיטים</b><div class="small">
+    המודל התלת־ממדי: <b>BodyParts3D</b> — מודל אנטומי אמיתי שנבנה מסריקת MRI של גוף אדם. © The Database Center for Life Science, ברישיון CC BY-SA 2.1 JP ·
+    <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a><br>
+    גופן: Rubik (SIL Open Font License) · ספריית three.js (MIT) · קריינות: Gemini TTS<br>
+    יוצר: Tinker Doodle · <span dir="ltr">tinkerdoodle.games@gmail.com</span></div></div>
+</div>
+
 <div id="toast">⭐<div id="toastText">כל הכבוד!</div></div>
 
 <div id="start"><div class="card">
   <img class="big logo" src="data:image/svg+xml;base64,__LOGO_SVG__" alt="">
-  <h2>ליה, בואי לחקור את הלב!</h2>
+  <h2 id="startH">ליה, בואי לחקור את הלב!</h2>
   <p>לב אמיתי של בן אדם — אפשר לסובב, להיכנס פנימה ולרכב על טיפת דם</p>
+  <div id="profRow"></div>
   <button id="goBtn" disabled>יוצאים לדרך!</button>
   <div class="load" id="loadMsg">טוענת את הלב…</div>
+  <div class="startLinks"><button id="langBtn">🌐 English</button><button id="parentBtn">🔒 להורים</button></div>
 </div></div>
 
 <script type="importmap">{"imports":{"three":"__THREE__/build/three.module.js","three/addons/":"__THREE__/examples/jsm/"}}</script>
@@ -357,8 +515,43 @@ const $ = s => document.querySelector(s);
 const V = a => new THREE.Vector3(a[0], a[1], a[2]);
 const store = {
   get(k, d) { try { const v = localStorage.getItem('lia-heart-' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('lia-heart-' + k, JSON.stringify(v)); } catch {} }
+  set(k, v) { try { localStorage.setItem('lia-heart-' + k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem('lia-heart-' + k); } catch {} },
+  // per-child keys (stars, rooms…)
+  pget(k, d) { return P ? store.get('p' + P.id + '-' + k, d) : d; },
+  pset(k, v) { if (P) store.set('p' + P.id + '-' + k, v); }
 };
+
+// ---------------- profiles & language ----------------
+const I18N = __I18N__;
+let lang = store.get('lang', 'he');
+let profiles = store.get('profiles', null);
+if (!profiles) {          // first run — keep Lia's old stars if she already played
+  profiles = [];
+  const oldDone = store.get('done', null);
+  if (oldDone) { profiles.push({ id: 1, name: 'ליה', nameEn: 'Lia', g: 'f', age: 5, emo: '👧', birth: '' });
+    store.set('p1-done', oldDone); store.set('p1-rooms', store.get('rooms', [])); store.del('done'); store.del('rooms'); }
+  store.set('profiles', profiles);
+}
+let P = profiles.find(p => p.id === store.get('cur', 0)) || profiles[0] || null;
+const level = () => !P ? 1 : P.age <= 6 ? 1 : P.age <= 10 ? 2 : 3;
+const isM = () => P && P.g === 'm';
+// pick the right version of a (feminine, Hebrew) source string: English / masculine / as is
+const EDGE = /^([\u{1F000}-\u{1FAFF}\u2190-\u21FF\u2300-\u23FF\u2B00-\u2BFF\u2600-\u27BF\uFE0F\u200D\u20E3\s]*)([\s\S]*?)([\u{1F000}-\u{1FAFF}\u2190-\u21FF\u2300-\u23FF\u2B00-\u2BFF\u2600-\u27BF\uFE0F\u200D\u20E3\s]*)$/u;
+function look(D, s) { if (s in D) return D[s]; const m = s.match(EDGE); return m && m[2] !== s && m[2] in D ? m[1] + D[m[2]] + m[3] : null; }
+function variant(s) {
+  let r = lang === 'en' ? (look(I18N.en, s) ?? s) : isM() ? (look(I18N.m, s) ?? s) : s;
+  return isM() ? r.replace(/\u2640/g, '\u2642') : r;
+}
+const NAME_RE = /ליה|\bLia\b/g;
+const pname = () => !P ? '' : lang === 'en' ? (P.nameEn || P.name) : P.name;
+function tr(s) { if (s == null || s === '') return s; return variant(String(s)).replace(NAME_RE, pname()); }
+// spoken version: the name is said as its own recorded clip, so it is taken out of the sentence
+function stripName(v) {
+  let r = v.replace(/[,،]?\s*(ליה|\bLia\b)\s*[,،]?/g, ' ').replace(/\s+([!?.,…])/g, '$1').replace(/\s+/g, ' ').trim();
+  return r.replace(/^[,!.\s]+/, '').replace(/^[a-z]/, c => c.toUpperCase());
+}
+const hasName = s => /ליה|\bLia\b/.test(variant(String(s)));
 // floating background bubbles
 for (let i = 0; i < 18; i++) { const b = document.createElement('i'); const s = 6 + Math.random() * 26;
   Object.assign(b.style, { left: Math.random() * 100 + '%', width: s + 'px', height: s + 'px', animationDuration: 14 + Math.random() * 20 + 's', animationDelay: -Math.random() * 30 + 's' });
@@ -366,8 +559,9 @@ for (let i = 0; i < 18; i++) { const b = document.createElement('i'); const s = 
 
 // ---------------- speech ----------------
 let muted = store.get('muted', false);
-let heVoice = null;
-function pickVoice() { const vs = speechSynthesis.getVoices(); heVoice = vs.find(v => /^he|^iw/i.test(v.lang)) || null; }
+let heVoice = null, enVoice = null;
+function pickVoice() { const vs = speechSynthesis.getVoices(); heVoice = vs.find(v => /^he|^iw/i.test(v.lang)) || null;
+  enVoice = vs.find(v => /^en[-_]US/i.test(v.lang) && /female|samantha|google/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null; }
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 let lastSaid = [];
 const VOICES = {}/*VOICES*/;
@@ -379,28 +573,43 @@ function playNext() {
   const src = audioQueue.shift(); if (!src) { curAudio = null; return; }
   curAudio = new Audio(src); curAudio.onended = playNext; curAudio.onerror = playNext; curAudio.play().catch(playNext);
 }
+// parts are source strings; each is turned into the child's language / gender before speaking
 function speak(parts) {
-  parts = (Array.isArray(parts) ? parts : [parts]).map(cleanTxt).filter(Boolean);
+  parts = (Array.isArray(parts) ? parts : [parts]).filter(p => p != null && cleanTxt(p));
   lastSaid = parts; stopVoice();
   if (muted || !parts.length) return;
-  if (parts.every(p => VOICES[vkey(p)])) { audioQueue = parts.map(p => VOICES[vkey(p)]); playNext(); return; }
+  const nameLine = pname() ? cleanTxt(pname() + '!') : '';
+  const clips = [];
+  for (const p of parts) {
+    const vr = variant(String(p)), nm = hasName(p) && nameLine && VOICES[vkey(nameLine)], first = vr.search(NAME_RE) < 4;
+    if (nm && first) clips.push(nameLine);
+    const v = cleanTxt(hasName(p) ? stripName(vr) : vr);
+    if (v) clips.push(v);
+    if (nm && !first) clips.push(nameLine);
+  }
+  if (clips.every(c => VOICES[vkey(c)])) { audioQueue = clips.map(c => VOICES[vkey(c)]); playNext(); return; }
   if (!('speechSynthesis' in window)) return;
   try {
-    const u = new SpeechSynthesisUtterance(parts.join('. '));
-    u.lang = 'he-IL'; if (heVoice) u.voice = heVoice; u.rate = 0.92; u.pitch = 1.08;
+    const u = new SpeechSynthesisUtterance(parts.map(p => cleanTxt(tr(p))).join('. '));
+    if (lang === 'en') { u.lang = 'en-US'; if (enVoice) u.voice = enVoice; } else { u.lang = 'he-IL'; if (heVoice) u.voice = heVoice; }
+    u.rate = 0.92; u.pitch = 1.08;
     speechSynthesis.speak(u);
   } catch {}
 }
 const speaking = () => !muted && (!!curAudio || ('speechSynthesis' in window && speechSynthesis.speaking));
 let bubbleTimer;
 function speakMore(t) { if (!muted) { const p = lastSaid.concat([t]); speak(p); } }
+// extra sentences for older children (level 2: 7–10, level 3: 11+)
+function advFor(text) { const a = I18N.adv[text]; if (!a) return []; const L = level(); return [L >= 2 && a[2], L >= 3 && a[3]].filter(Boolean); }
 function say(title, text, opts = {}) {
-  $('#bTitle').textContent = title || ''; $('#bText').textContent = text;
+  const extra = opts.noAdv ? [] : advFor(text), base = text;
+  $('#bTitle').textContent = tr(title) || ''; $('#bText').textContent = [text, ...extra].map(tr).join(' ');
+  text = $('#bText').textContent;
   $('#bubble').classList.add('show');
   clearTimeout(bubbleTimer);
   $('#bubble').classList.remove('open');
   bubbleTimer = setTimeout(() => $('#bubble').classList.remove('show'), opts.ms || Math.max(5000, text.length * 75));
-  if (!opts.silent) speak([title, text]);
+  if (!opts.silent) speak([title, base, ...extra]);
 }
 $('#sayAgain').onclick = e => { e.stopPropagation(); speak(lastSaid); };
 $('#bubble').onclick = () => { const b = $('#bubble'); if (!b.classList.contains('open') && $('#bText').scrollHeight > $('#bText').clientHeight + 2) { b.classList.add('open'); clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => b.classList.remove('show'), 9000); } else b.classList.remove('show'); };
@@ -619,8 +828,8 @@ loader.parse(b64ToBuf(GLB_B64), '', gltf => {
   initLiving(B);
   meshes.lungs.visible = meshes.trachea.visible = false;
   buildRoutes(); buildCells(); buildIcon(); applyLook();
-  ready = true; $('#loadMsg').textContent = ''; $('#goBtn').disabled = false;
-}, err => { $('#loadMsg').textContent = 'אופס, הלב לא נטען: ' + err; });
+  ready = true; $('#loadMsg').textContent = ''; $('#goBtn').disabled = false; setEco(eco);
+}, err => { $('#loadMsg').textContent = tr('אופס, הלב לא נטען: ') + err; });
 
 // ---------------- blood routes ----------------
 function buildRoutes() {
@@ -743,7 +952,7 @@ function goHome() {
 $('#homeBtn').onclick = () => { audio(); goHome(); };
 
 // ---------------- rooms (go inside) ----------------
-const roomsSeen = new Set(store.get('rooms', []));
+let roomsSeen = new Set(store.pget('rooms', []));
 const LOOK = { tri: () => V(DATA.anchors.tri), mit: () => V(DATA.anchors.mit), pulm: () => V(DATA.valves.pulmonary), aortic: () => V(DATA.valves.aortic) };
 function enterRoom(id) {
   if (S.ride) stopRide(false); if (S.alv) exitAlv(); if (S.fist) toggleFist();
@@ -758,9 +967,9 @@ function enterRoom(id) {
   const outside = at.clone().add(camera.position.clone().sub(at).normalize().multiplyScalar(10));
   controls.minDistance = 0.05; controls.maxDistance = 60; controls.enableZoom = false;
   flyTo(outside, at, 0.8, () => flyTo(camPos, tgt, 1.6, () => { controls.maxDistance = 1.2; controls.enableZoom = true; }));
-  $('#exitbtn').textContent = '⬅️ לצאת מהלב'; $('#exitbtn').classList.add('show');
+  $('#exitbtn').textContent = tr('⬅️ לצאת מהלב'); $('#exitbtn').classList.add('show');
   say(ROOMS[id].name, ROOMS[id].text); speakMore('אפשר להזיז את האצבע כדי להסתכל מסביב.');
-  mission('room_' + id); roomsSeen.add(id); store.set('rooms', [...roomsSeen]);
+  mission('room_' + id); roomsSeen.add(id); store.pset('rooms', [...roomsSeen]);
   if (roomsSeen.size >= 4) mission('allrooms');
 }
 function exitRoom() {
@@ -830,7 +1039,7 @@ function drawEcg(dt, tsc) {
   ecgLastPh = beatPhase;
   ecgPrev = y; ecgX = nx; if (ecgX > W) { ecgX = 0; ecgPrev = null; }
   ecx.fillStyle = '#ffffff'; ecx.beginPath(); ecx.arc(ecgX, y, 4, 0, 7); ecx.fill();
-  const cap = ecgCaption(beatPhase); if (cap !== ecgCapTxt) { ecgCapTxt = cap; $('#ecgCap').textContent = cap; }
+  const cap = ecgCaption(beatPhase); if (cap !== ecgCapTxt) { ecgCapTxt = cap; $('#ecgCap').textContent = tr(cap); }
   $('#ecgBpm').textContent = S.bpm;
 }
 function setElec(on) {
@@ -889,6 +1098,7 @@ const BP_TALK = {
   change: ['מה משנה את הלחץ?', 'כשרצים וקופצים — הלחץ עולה, כדי לשלוח יותר דם לשרירים. כשישנים — הוא יורד. אצל הרופא מודדים אותו עם שרוול שמתנפח על היד — זה רק לוחץ קצת, ולא כואב!'],
 };
 function setBP(on) {
+  if (on) { openTray(null); if (S.mine) setMine(false); if (S.animal) endAnimal(); }
   if (on && S.vol) setVol(false);
   S.bp = on; $('#bpBox').classList.toggle('show', on); document.querySelector('.tool[data-t="bp"]').classList.toggle('on', on);
   HU.uPAmp.value = on ? 0.2 : 0.05;
@@ -911,6 +1121,7 @@ const VOL_TALK = {
   loop: ['שוב ושוב', 'יש בגוף רק ליטר וחצי דם, אבל הלב שולח מאה וחמישים ליטר בשעה. איך זה יכול להיות? כי זה אותו דם שעושה סיבוב — שוב ושוב — בערך פעם בדקה!'],
 };
 function setVol(on) {
+  if (on) { openTray(null); if (S.mine) setMine(false); if (S.animal) endAnimal(); }
   S.vol = on; $('#volBox').classList.toggle('show', on); document.querySelector('.tool[data-t="vol"]').classList.toggle('on', on);
   if (on) { if (S.bp) setBP(false); volLiters = 0; say(...VOL_TALK.me); mission('vol'); }
 }
@@ -967,7 +1178,7 @@ function enterAlv(fromRide) {
     controls.minDistance = 2.5; controls.maxDistance = 30; controls.enabled = true;
   });
   document.querySelector('.tool[data-t="alv"]').classList.add('on');
-  if (!fromRide) { $('#exitbtn').textContent = '⬅️ חזרה ללב'; $('#exitbtn').classList.add('show'); }
+  if (!fromRide) { $('#exitbtn').textContent = tr('⬅️ חזרה ללב'); $('#exitbtn').classList.add('show'); }
   say('בועיות האוויר 🫧', 'הגדלנו המון! אלה בועיות אוויר קטנטנות בתוך הריאה. כשאת נושמת הן מתנפחות. החמצן — הנקודות התכולות — עובר מהבועית אל תאי הדם, והם הופכים לאדומים! והפסולת — הנקודות האפורות — יוצאת החוצה כשנושפים.');
   mission('alveoli');
   return true;
@@ -1072,8 +1283,8 @@ function updateRide(dt, flowBoost) {
   tp.needsUpdate = tc.needsUpdate = true; trail.geometry.setDrawRange(0, Math.max(2, trailPts.length));
   // stage label
   let st = ''; for (const k in r.tagU) if (R.u >= r.tagU[k] - 0.001) st = k;
-  if (st !== R.stage) { R.stage = st; $('#rideStage').textContent = '📍 ' + (STAGE_NAMES[st] || ''); }
-  const dot = $('#rideDot'); dot.style.right = (R.u * 100) + '%'; dot.textContent = R.u < r.o2 ? '🔵' : '🔴';
+  if (st !== R.stage) { R.stage = st; $('#rideStage').textContent = '📍 ' + tr(STAGE_NAMES[st] || ''); }
+  const dot = $('#rideDot'); dot.style[lang === 'en' ? 'left' : 'right'] = (R.u * 100) + '%'; dot.textContent = R.u < r.o2 ? '🔵' : '🔴';
   if (flight) return;
   if (R.inside) {
     routePos(r, R.u - 0.9 / r.len, _b); lungDeformJS(_b);
@@ -1165,7 +1376,7 @@ function drumTap() {
 function setTool(t, on, silent) {
   const b = document.querySelector(`.tool[data-t="${t}"]`); if (b) b.classList.toggle('on', on);
   if (t === 'beat') { S.beat = on; $('#beatToggle').textContent = on ? '⏸️' : '▶️'; $('#beatToggle').classList.toggle('on', on); }
-  if (t === 'flow') { S.flow = on; applyLook(); $('#flowToggle').textContent = on ? 'להסתיר' : 'להציג'; $('#flowToggle').classList.toggle('on', on); }
+  if (t === 'flow') { S.flow = on; applyLook(); $('#flowToggle').textContent = tr(on ? 'להסתיר' : 'להציג'); $('#flowToggle').classList.toggle('on', on); }
   if (t === 'xray') { S.xray = on; S.glass = on ? Math.max(S.glass, 0.85) : 0; $('#glass').value = S.glass; applyLook(); }
   if (t === 'lungs') { S.lungs = on; applyLook(); }
   if (t === 'cut') { S.cutTarget = on ? 1 : 0; applyLook(); }
@@ -1213,8 +1424,11 @@ document.querySelectorAll('.tool').forEach(b => b.onclick = () => {
   if (t === 'ride') { if (S.ride) stopRide(false); else { startRide(); } return; }
   if (t === 'fact') { const f = FACTS[factI++ % FACTS.length]; say('הידעת? 💡', f); if (++factsHeard >= 3) mission('facts'); return; }
   if (t === 'missions') { renderMissions(); openPop('#missionsPop'); return; }
+  if (t === 'mine') { setMine(!S.mine); return; }
+  if (t === 'animals') { openAnimals(); return; }
+  if (t === 'good') { startGood(); return; }
 });
-function bpmEmoji(v) { return v < 65 ? '😴' : v < 115 ? '🚶‍♀️' : v < 160 ? '🏃‍♀️' : '🚀'; }
+function bpmEmoji(v) { return v < 65 ? '😴' : v < 115 ? (isM() ? '🚶‍♂️' : '🚶‍♀️') : v < 160 ? (isM() ? '🏃‍♂️' : '🏃‍♀️') : '🚀'; }
 let bpmSayT = 0, lastBand = 'walk';
 function setBpm(v, talk) {
   S.bpm = +v; $('#bpm').value = v; $('#bpmVal').textContent = v; $('#bpmEmo').textContent = bpmEmoji(v);
@@ -1235,7 +1449,7 @@ $('#amp').oninput = e => { S.amp = +e.target.value; if (S.amp >= 2.5) mission('s
 $('#fspeed').oninput = e => { S.fspeed = +e.target.value; if (!S.flow) setTool('flow', true); };
 $('#fcount').oninput = e => { cells.count = +e.target.value; if (!S.flow) setTool('flow', true); };
 $('#flowToggle').onclick = () => { audio(); setTool('flow', !S.flow); if (S.flow) { mission('flow'); say('זרימת הדם 🩸', 'אלה תאי דם קטנטנים! הכחולים עייפים וצריכים חמצן, האדומים מלאים בחמצן.'); } };
-$('#slowBtn').onclick = () => { audio(); S.slow = !S.slow; $('#slowBtn').classList.toggle('on', S.slow); $('#slowBtn').textContent = S.slow ? '🐌 הילוך איטי — פועל' : '🐌 הילוך איטי';
+$('#slowBtn').onclick = () => { audio(); S.slow = !S.slow; $('#slowBtn').classList.toggle('on', S.slow); $('#slowBtn').textContent = tr(S.slow ? '🐌 הילוך איטי — פועל' : '🐌 הילוך איטי');
   if (S.slow) { say('הילוך איטי 🐌', 'עכשיו הכול קורה לאט־לאט. תסתכלי איך השריר נלחץ ומתפתל, ואיך הדלתות נפתחות ונסגרות.'); if (S.glass < 0.5) { S.glass = 0.7; $('#glass').value = 0.7; setTool('xray', true); } } };
 $('#fsBtn').onclick = async () => { audio(); const d = document;
   try { if (d.fullscreenElement || d.webkitFullscreenElement) await (d.exitFullscreen || d.webkitExitFullscreen).call(d);
@@ -1277,18 +1491,21 @@ const MISSIONS = [
   { id: 'bp', e: '🩺', t: 'גלי מה זה לחץ דם' },
   { id: 'vol', e: '💧', t: 'גלי כמה דם יש בגוף שלך' },
   { id: 'facts', e: '💡', t: 'שמעי שלוש עובדות מדהימות' },
+  { id: 'mine', e: '🎂', t: 'גלי כמה פעמים הלב שלך פעם מאז שנולדת' },
+  { id: 'animals', e: '🐘', t: 'הקשיבי ללבבות של שלוש חיות' },
+  { id: 'good', e: '💚', t: 'שחקי במשחק "מה טוב ללב?"', go: () => startGood() },
   { id: 'drum', e: '🥁', t: 'תופפי יחד עם הלב', go: () => startDrum() },
   { id: 'q1', e: '🤔', t: 'חידה: כמה חדרים יש בלב?', go: () => quiz('q1') },
   { id: 'q2', e: '🤔', t: 'חידה: איפה הדם מקבל חמצן?', go: () => quiz('q2') },
   { id: 'q3', e: '🤔', t: 'חידה: איזה צד של הלב שולח דם לכל הגוף?', go: () => quiz('q3') },
   { id: 'q4', e: '🤔', t: 'חידה: מתי לחץ הדם הכי גבוה?', go: () => quiz('q4') },
 ];
-const done = new Set(store.get('done', []));
+let done = new Set(store.pget('done', []));
 const HINTS = { rotate: { say: 'שימי אצבע על הלב והזיזי אותה לצדדים.' }, zoom: { say: 'שימי שתי אצבעות על המסך ופתחי אותן — כמו בתמונות.' },
   aorta: { part: 'aorta' }, vena: { part: 'svc' }, coronary: { part: 'coronaryart' }, ctrl: { tool: 'ctrl' }, run: { tool: 'ctrl' }, sleep: { tool: 'ctrl' }, strong: { tool: 'ctrl' },
   flow: { tool: 'flow' }, icon: { tool: 'icon' }, xray: { tool: 'xray' }, valve: { tool: 'xray', say: 'הפכי את הלב לשקוף, ואז לחצי על הדלתות הלבנות שבפנים.' },
   cut: { tool: 'cut' }, room_LV: { tool: 'rooms' }, allrooms: { tool: 'rooms' }, lungs: { tool: 'lungs' }, alveoli: { tool: 'alv' }, elec: { tool: 'elec' },
-  slowbeat: { tool: 'slowbeat' }, fist: { tool: 'fist' }, bp: { tool: 'bp' }, vol: { tool: 'vol' }, ride: { tool: 'ride' }, facts: { tool: 'fact' } };
+  slowbeat: { tool: 'slowbeat' }, fist: { tool: 'fist' }, bp: { tool: 'bp' }, vol: { tool: 'vol' }, ride: { tool: 'ride' }, facts: { tool: 'fact' }, mine: { tool: 'mine' }, animals: { tool: 'animals' } };
 function showHint(m) {
   closePops(); const h = HINTS[m.id] || {};
   if (h.tool) { const b = document.querySelector(`.tool[data-t="${h.tool}"]`); if (b) { openTray(b.dataset.g); b.classList.add('hint'); setTimeout(() => b.classList.remove('hint'), 4500); } }
@@ -1296,10 +1513,10 @@ function showHint(m) {
   speak([h.say || m.t]);
 }
 function renderMissions() {
-  const L = $('#missionList'); L.innerHTML = '';
+  const L = $('#missionList'); L.innerHTML = ''; $('#rankTxt').textContent = rankLabel();
   for (const m of MISSIONS) {
     const d = document.createElement('div'); d.className = 'mission' + (done.has(m.id) ? ' done' : '');
-    d.innerHTML = `<span class="e">${m.e}</span><span class="t">${m.t}</span>${!done.has(m.id) ? (m.go ? '<button class="go">יאללה!</button>' : '<button class="go hintb">👉 הראי לי</button>') : ''}<span class="s">⭐</span>`;
+    d.innerHTML = `<span class="e">${m.e}</span><span class="t">${tr(m.t)}</span>${!done.has(m.id) ? (m.go ? `<button class="go">${tr('יאללה!')}</button>` : `<button class="go hintb">${tr('👉 הראי לי')}</button>`) : ''}<span class="s">⭐</span>`;
     d.onclick = ev => { if (ev.target.classList.contains('hintb')) { showHint(m); return; } if (ev.target.classList.contains('go')) { m.go(); return; } speak(done.has(m.id) ? [m.t, 'כבר עשית את זה! כל הכבוד.'] : [m.t]); };
     L.appendChild(d);
   }
@@ -1310,15 +1527,16 @@ updStars();
 const PRAISE = ['כל הכבוד ליה!', 'מדהים! עוד כוכב!', 'איזו חוקרת!', 'יופי של עבודה!', 'וואו, את אלופה!'];
 function mission(id) {
   if (done.has(id) || !MISSIONS.find(m => m.id === id)) return;
-  done.add(id); store.set('done', [...done]); updStars();
+  done.add(id); store.pset('done', [...done]); updStars(); checkRank();
   setTimeout(() => {
     chime(); const msg = PRAISE[Math.floor(Math.random() * PRAISE.length)];
-    $('#toastText').textContent = msg; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 1600);
+    $('#toastText').textContent = tr(msg); $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 1600);
     if (done.size === MISSIONS.length) { confetti(); setTimeout(() => say('🏆 חוקרת לב אמיתית!', 'ליה, אספת את כל הכוכבים! את יודעת על הלב יותר מהרבה מבוגרים. כל הכבוד!'), 1700); }
+    else if (rankUp) { confetti(); const r = rankUp; rankUp = null; setTimeout(() => say('דרגה חדשה! ' + RANKS[r].e, RANKS[r].say), 1500); }
     else confetti(40);
   }, speaking() ? 400 : 200);
 }
-$('#resetStars').onclick = () => { done.clear(); store.set('done', []); updStars(); renderMissions(); };
+$('#resetStars').onclick = () => { done.clear(); store.pset('done', []); roomsSeen.clear(); store.pset('rooms', []); updStars(); toast('✅'); };
 
 // quizzes
 const QUIZ = {
@@ -1328,9 +1546,9 @@ const QUIZ = {
   q3: { q: 'איזה צד של הלב שולח דם אדום לכל הגוף?', o: [['הצד השמאלי', '🔴'], ['הצד הימני', '🔵']], a: 0, yes: 'נכון! החדר השמאלי, הכי חזק — דרך אבי העורקים.' },
 };
 function quiz(id) {
-  const Q = QUIZ[id]; openPop('#quizPop'); $('#quizQ').textContent = Q.q; speak([Q.q].concat(Q.o.map(o => o[0])));
+  const Q = QUIZ[id]; openPop('#quizPop'); $('#quizQ').textContent = tr(Q.q); speak([Q.q].concat(Q.o.map(o => o[0])));
   const O = $('#quizOpts'); O.innerHTML = '';
-  Q.o.forEach(([txt, e], i) => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = `<span class="e">${e}</span>${txt}`;
+  Q.o.forEach(([txt, e], i) => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = `<span class="e">${e}</span>${tr(txt)}`;
     b.onclick = () => { if (i === Q.a) { b.classList.add('good'); say('', Q.yes); setTimeout(() => { closePops(); mission(id); }, 1600); }
       else { b.classList.add('bad'); speak('לא בדיוק... נסי שוב!'); setTimeout(() => b.classList.remove('bad'), 500); } };
     O.appendChild(b); });
@@ -1365,9 +1583,12 @@ controls.addEventListener('change', () => {
   if (camera.position.distanceTo(controls.target) < HOME.pos.distanceTo(HOME.target) * 0.6) mission('zoom');
 });
 
+/*__KIDS__*/
+
 // ---------------- start ----------------
 $('#goBtn').onclick = () => {
-  audio(); $('#start').classList.add('hide');
+  audio(); if (!P) { openGate(() => openProf(null)); return; }
+  $('#start').classList.add('hide');
   flyTo(HOME.pos, HOME.target, 2.4);
   setTimeout(() => say('שלום ליה! 👋', 'זה לב אמיתי של בן אדם — בדיוק כמו הלב שדופק אצלך בתוך החזה. אפשר לסובב אותו עם האצבע, להתקרב, וללחוץ על כל חלק כדי לשמוע מה הוא. לחצי על המשימות 🎯 כדי לאסוף כוכבים!'), 900);
 };
@@ -1408,7 +1629,7 @@ renderer.setAnimationLoop(() => {
   updateFlight(dt);
   if (S.ride) updateRide(dt * tsc, flowBoost / Math.max(tsc, 0.01)); else controls.update();
   updateCells(dt, flowBoost);
-  updateHighlight(dt); drawConfetti(dt);
+  updateHighlight(dt); drawConfetti(dt); updateMine(dt); ecoTick();
   renderer.render(scene, camera);
 });
 if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) { navigator.serviceWorker.register('sw.js').catch(() => {}); }

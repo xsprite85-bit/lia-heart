@@ -8,17 +8,18 @@ Run from heart/voice:  GK=<gemini key> python3 heart_voice.py ../lia-heart.html 
 - stops cleanly when the daily free quota is used up; writes report.json
 - writes ../lia-heart-gemini.html with every recorded clip embedded (missing lines fall back to the browser voice)
 """
-import os, sys, json, re, base64, wave, time, subprocess, difflib, urllib.request, urllib.error
+import os, sys, json, re, base64, wave, time, subprocess, difflib, shutil, urllib.request, urllib.error
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CLIPS = os.path.join(HERE, 'clips'); RAW = os.path.join(HERE, 'raw')
+CLIPS = os.environ.get('CLIPS_DIR', os.path.join(HERE, 'clips')); RAW = os.path.join(HERE, 'raw')
 MODEL_DIR = os.environ.get('WHISPER_DIR', '/tmp/whisper-ivrit')
 VOICE = os.environ.get('VOICE', 'Kore'); TTS = os.environ.get('TTS_MODEL', 'gemini-3.8-flash-tts')
 FAKE = os.environ.get('VOICE_FAKE') == '1'
 os.makedirs(CLIPS, exist_ok=True); os.makedirs(RAW, exist_ok=True)
 
 def norm(w):
+    if re.search('[a-zA-Z]', w): return re.sub(r'[^a-z0-9]', '', w.lower())
     w = re.sub(r'[֑-ׇ]', '', w); w = re.sub(r'[^א-ת]', '', w)
     return w.replace('יי', 'י').replace('וו', 'ו')
 
@@ -67,11 +68,11 @@ def tts(text, out):
     w = wave.open(out, 'wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm); w.close()
     return len(pcm) / 48000
 
-def token_times(wav, toks, dur):
+def token_times(wav, toks, dur, lang='he'):
     """[start,end] for every text token, plus which tokens matched the recognizer exactly"""
     if FAKE:
         step = dur / len(toks); return [[i * step, (i + 1) * step] for i in range(len(toks))], [True] * len(toks)
-    segs, _ = model().transcribe(load16k(wav), language='he', word_timestamps=True, beam_size=5)
+    segs, _ = model().transcribe(load16k(wav), language=lang, word_timestamps=True, beam_size=5)
     W = [(norm(w.word), w.start, w.end) for s in segs for w in s.words]; W = [w for w in W if w[0]]
     tn = [norm(t) for t in toks]
     sm = difflib.SequenceMatcher(None, tn, [w[0] for w in W], autojunk=False)
@@ -94,20 +95,27 @@ def cut(wav, a, b, out):
 
 def batches(items, limit=650):
     out, cur, n = [], [], 0
-    for it in sorted(items, key=lambda x: len(x['t'])):          # short lines (names, labels) together first
-        if cur and (n + len(it['t']) > limit or len(cur) >= 20): out.append(cur); cur, n = [], 0
+    for it in sorted(items, key=lambda x: (x.get('l', 'he'), len(x['t']))):   # one language per batch; short lines together
+        if cur and (n + len(it['t']) > limit or len(cur) >= 20 or cur[0].get('l', 'he') != it.get('l', 'he')): out.append(cur); cur, n = [], 0
         cur.append(it); n += len(it['t'])
     if cur: out.append(cur)
     return out
 
-def inject(page):
+def inject(page, lines, site=None):
+    """single file: Hebrew clips embedded (English uses the browser voice). site: every clip as a file in <site>/voice/."""
     html = open(page, encoding='utf8').read()
     V = {}
-    for f in os.listdir(CLIPS):
-        if f.endswith('.mp3'):
-            V[f[:-4]] = 'data:audio/mpeg;base64,' + base64.b64encode(open(os.path.join(CLIPS, f), 'rb').read()).decode()
+    if site: os.makedirs(os.path.join(site, 'v'), exist_ok=True)
+    for it in lines:
+        f = os.path.join(CLIPS, it['k'] + '.mp3')
+        if not os.path.exists(f): continue
+        if site:
+            shutil.copyfile(f, os.path.join(site, 'v', it['k'] + '.mp3')); V[it['k']] = 'v/' + it['k'] + '.mp3'
+        elif it.get('l', 'he') == 'he':
+            V[it['k']] = 'data:audio/mpeg;base64,' + base64.b64encode(open(f, 'rb').read()).decode()
     html = re.sub(r'const VOICES = \{.*?\}/\*VOICES\*/;', lambda m: 'const VOICES = ' + json.dumps(V) + '/*VOICES*/;', html, count=1, flags=re.S)
-    out = re.sub(r'\.html$', '-gemini.html', page); open(out, 'w', encoding='utf8').write(html)
+    out = os.path.join(site, 'index.html') if site else re.sub(r'\.html$', '-gemini.html', page)
+    open(out, 'w', encoding='utf8').write(html)
     return out, len(V)
 
 def main():
@@ -122,7 +130,7 @@ def main():
         J = json.load(open(j, encoding='utf8'))
         if J.get('text') != it['t'] or J.get('matched', 1) < 0.6: todo.append(it)   # changed text or weak clip -> record again
     report = {'total': len(lines), 'pending_before': len(todo), 'done': 0, 'weak': [], 'stopped': None, 'requests': 0}
-    if todo and not FAKE: ensure_model()
+    if todo and not FAKE and maxreq > 0: ensure_model()
     for bi, group in enumerate(batches(todo)):
         if report['requests'] >= maxreq: report['stopped'] = 'max requests'; break
         parts = [it['t'] if re.search(r'[.!?…]$', it['t']) else it['t'] + '.' for it in group]   # each line ends a sentence
@@ -131,7 +139,7 @@ def main():
             dur = tts(text, raw); report['requests'] += 1
         except Quota as q:
             report['stopped'] = 'daily quota: ' + str(q)[:120]; break
-        toks = text.split(); T, ex = token_times(raw, toks, dur)
+        toks = text.split(); T, ex = token_times(raw, toks, dur, group[0].get('l', 'he'))
         k = 0
         for gi, it in enumerate(group):
             n = len(parts[gi].split()); a, b = k, k + n - 1; k += n
@@ -145,7 +153,8 @@ def main():
             report['done'] += 1
         if not FAKE: time.sleep(25)
     report['pending_after'] = sum(1 for it in lines if not os.path.exists(os.path.join(CLIPS, it['k'] + '.json')))
-    out, n = inject(page); report['page'] = out; report['clips_in_page'] = n
+    site = sys.argv[sys.argv.index('--site') + 1] if '--site' in sys.argv else None
+    out, n = inject(page, lines, site); report['page'] = out; report['clips_in_page'] = n
     json.dump(report, open(os.path.join(HERE, 'report.json'), 'w'), ensure_ascii=False, indent=1)
     print(json.dumps(report, ensure_ascii=False))
 
