@@ -581,7 +581,7 @@ function speak(parts) {
   const nameLine = pname() ? cleanTxt(pname() + '!') : '';
   const clips = [];
   for (const p of parts) {
-    const vr = variant(String(p)), nm = hasName(p) && nameLine && VOICES[vkey(nameLine)], first = vr.search(NAME_RE) < 4;
+    const vr = variant(String(p)), nm = hasName(p) && nameLine && VOICES[vkey(nameLine)], first = vr.search(NAME_RE) < 2;
     if (nm && first) clips.push(nameLine);
     const v = cleanTxt(hasName(p) ? stripName(vr) : vr);
     if (v) clips.push(v);

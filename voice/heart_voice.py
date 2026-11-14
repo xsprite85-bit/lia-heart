@@ -28,13 +28,13 @@ def ensure_model():
     from huggingface_hub import snapshot_download
     snapshot_download('ivrit-ai/whisper-large-v3-turbo-ct2', local_dir=MODEL_DIR)
 
-_M = None
-def model():
-    global _M
-    if _M is None:
+_M = {}
+def model(lang='he'):
+    """Hebrew: ivrit-ai model. English: the standard multilingual 'small' model (the Hebrew one mis-hears short English words)."""
+    if lang not in _M:
         from faster_whisper import WhisperModel
-        _M = WhisperModel(MODEL_DIR, device='cpu', compute_type='int8')
-    return _M
+        _M[lang] = WhisperModel(MODEL_DIR if lang == 'he' else 'small', device='cpu', compute_type='int8')
+    return _M[lang]
 
 def load16k(p):
     b = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', p, '-ac', '1', '-ar', '16000', '-f', 's16le', '-'], capture_output=True).stdout
@@ -72,7 +72,7 @@ def token_times(wav, toks, dur, lang='he'):
     """[start,end] for every text token, plus which tokens matched the recognizer exactly"""
     if FAKE:
         step = dur / len(toks); return [[i * step, (i + 1) * step] for i in range(len(toks))], [True] * len(toks)
-    segs, _ = model().transcribe(load16k(wav), language=lang, word_timestamps=True, beam_size=5)
+    segs, _ = model(lang).transcribe(load16k(wav), language=lang, word_timestamps=True, beam_size=5)
     W = [(norm(w.word), w.start, w.end) for s in segs for w in s.words]; W = [w for w in W if w[0]]
     tn = [norm(t) for t in toks]
     sm = difflib.SequenceMatcher(None, tn, [w[0] for w in W], autojunk=False)
