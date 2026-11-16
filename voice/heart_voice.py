@@ -93,6 +93,10 @@ def token_times(wav, toks, dur, lang='he'):
 def cut(wav, a, b, out):
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-ss', f'{a:.3f}', '-to', f'{b:.3f}', '-i', wav, '-ac', '1', '-ar', '24000', '-b:a', '48k', out], check=True)
 
+# how to pronounce lines whose plain spelling is ambiguous (the clip is still stored under the plain text)
+PRON = {'מיה!': 'מִיָּה!'}
+ONLY = [x for x in os.environ.get('ONLY', '').split('|') if x]     # record only these lines (e.g. ONLY='מיה!')
+
 def batches(items, limit=650):
     out, cur, n = [], [], 0
     for it in sorted(items, key=lambda x: (x.get('l', 'he'), len(x['t']))):   # one language per batch; short lines together
@@ -128,12 +132,13 @@ def main():
         j = os.path.join(CLIPS, it['k'] + '.json')
         if not os.path.exists(j): todo.append(it); continue
         J = json.load(open(j, encoding='utf8'))
-        if J.get('text') != it['t'] or J.get('matched', 1) < 0.6: todo.append(it)   # changed text or weak clip -> record again
+        if (J.get('text') != it['t'] or J.get('matched', 1) < 0.6) and (not ONLY or it['t'] in ONLY): todo.append(it)   # changed text or weak clip -> record again
     report = {'total': len(lines), 'pending_before': len(todo), 'done': 0, 'weak': [], 'stopped': None, 'requests': 0}
     if todo and not FAKE and maxreq > 0: ensure_model()
     for bi, group in enumerate(batches(todo)):
         if report['requests'] >= maxreq: report['stopped'] = 'max requests'; break
-        parts = [it['t'] if re.search(r'[.!?…]$', it['t']) else it['t'] + '.' for it in group]   # each line ends a sentence
+        say = [PRON.get(it['t'], it['t']) for it in group]          # pronunciation (niqqud) for TTS; the key stays the plain text
+        parts = [x if re.search(r'[.!?…]$', x) else x + '.' for x in say]   # each line ends a sentence
         text = ' '.join(parts); raw = os.path.join(RAW, f'batch{bi}_{int(time.time())}.wav')
         try:
             dur = tts(text, raw); report['requests'] += 1

@@ -2229,7 +2229,7 @@ renderer.setAnimationLoop(() => {
 });
 if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
 // show a short green note when a new version was loaded
-{ const V = '202611161201', old = store.get('ver', null); store.set('ver', V);
+{ const V = '202611161410', old = store.get('ver', null); store.set('ver', V);
   if (old && old !== V) window.__newVer = true; }
 function showVerBanner() { if (!window.__newVer) return; window.__newVer = false; const b = $('#verBanner'); b.textContent = tr('✨ עודכנה גרסה חדשה');
   b.classList.add('show'); }
