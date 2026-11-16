@@ -2,7 +2,7 @@
 function toast(e, txt) { $('#toast').firstChild.nodeValue = e || '⭐'; $('#toastText').textContent = txt ? tr(txt) : ''; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 1600); }
 
 // ---------- translate the static page ----------
-const DYN = '#titleTxt,#bubble,#toast,#ecgCap,#rideStage,#missionList,#quizQ,#quizOpts,#profRow,#pList,#animalGrid,#goodE,#goodT,#goodProg,#gateQ,#gateErr,#rankTxt,#mineBeats,#mineLit,#mineCmp,#mineNote,#anTitle,#anEmo,#anBpm,#anSize,#pfAgeV,#pfLvl,#pfSug,#pfEmo,#privText,#pEcoNow,#starCount,#bpmVal,#bpmEmo,#bpSys,#bpDia,#bpNow,#volMin,#volHour,#volNow,#ecgBpm,#drumN,#rideDot,#exitbtn,#flowToggle,#slowBtn,#loadMsg,#langBtn,#profH,#pfDel';
+const DYN = '#verBanner,#titleTxt,#bubble,#toast,#ecgCap,#rideStage,#missionList,#quizQ,#quizOpts,#profRow,#pList,#animalGrid,#goodE,#goodT,#goodProg,#gateQ,#gateErr,#rankTxt,#mineBeats,#mineLit,#mineCmp,#mineNote,#anTitle,#anEmo,#anBpm,#anSize,#pfAgeV,#pfLvl,#pfSug,#pfEmo,#privText,#pEcoNow,#starCount,#bpmVal,#bpmEmo,#bpSys,#bpDia,#bpNow,#volMin,#volHour,#volNow,#ecgBpm,#drumN,#rideDot,#exitbtn,#flowToggle,#slowBtn,#loadMsg,#langBtn,#profH,#pfDel';
 const ORIG = new WeakMap();
 function applyI18n() {
   document.documentElement.lang = lang; document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';

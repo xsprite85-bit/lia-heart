@@ -279,6 +279,12 @@
   html[dir=ltr] #ridebar .dot { right:auto; left:0; transform:translateX(-50%); }
   html[dir=ltr] #bubble { padding:8px 50px 8px 14px; } html[dir=ltr] #bubble .say { left:auto; right:8px; }
   html[dir=ltr] .pop .close { left:auto; right:12px; }
+
+  #verBanner { position:fixed; top:10px; left:50%; transform:translate(-50%,-140%); z-index:200; background:#2f9e44; color:#fff; font:700 16px Rubik; padding:10px 18px; border-radius:16px; box-shadow:0 8px 24px #0007; transition:transform .35s ease; white-space:nowrap; }
+  #verBanner.show { animation:verIn 3s ease both; }
+  @keyframes verIn { 0%{transform:translate(-50%,-140%)} 12%,85%{transform:translate(-50%,0)} 100%{transform:translate(-50%,-140%)} }
+  #iosHint { display:none; margin-top:14px; font:500 14px/1.5 Rubik; background:#ffffff1c; border-radius:14px; padding:8px 12px; }
+  body.light #iosHint { background:#f3ecff; }
 </style>
 </head>
 <body>
@@ -486,6 +492,7 @@
     יוצר: Tinker Doodle · <span dir="ltr">tinkerdoodle.games@gmail.com</span></div></div>
 </div>
 
+<div id="verBanner">✨ עודכנה גרסה חדשה</div>
 <div id="toast">⭐<div id="toastText">כל הכבוד!</div></div>
 
 <div id="start"><div class="card">
@@ -496,6 +503,7 @@
   <button id="goBtn" disabled>יוצאים לדרך!</button>
   <div class="load" id="loadMsg">טוענת את הלב…</div>
   <div class="startLinks"><button id="langBtn">🌐 English</button><button id="parentBtn">🔒 להורים</button></div>
+  <div id="iosHint">📲 להתקנה באייפון: לחצו על כפתור השיתוף ⬆️ בספארי, ואז "הוספה למסך הבית"</div>
 </div></div>
 
 <script type="importmap">{"imports":{"three":"__THREE__/build/three.module.js","three/addons/":"__THREE__/examples/jsm/"}}</script>
@@ -828,7 +836,7 @@ loader.parse(b64ToBuf(GLB_B64), '', gltf => {
   initLiving(B);
   meshes.lungs.visible = meshes.trachea.visible = false;
   buildRoutes(); buildCells(); buildIcon(); applyLook();
-  ready = true; $('#loadMsg').textContent = ''; $('#goBtn').disabled = false; setEco(eco);
+  ready = true; $('#loadMsg').textContent = ''; $('#goBtn').disabled = false; setEco(eco); showVerBanner();
 }, err => { $('#loadMsg').textContent = tr('אופס, הלב לא נטען: ') + err; });
 
 // ---------------- blood routes ----------------
@@ -1633,6 +1641,15 @@ renderer.setAnimationLoop(() => {
   renderer.render(scene, camera);
 });
 if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+// show a short green note when a new version was loaded
+{ const V = '__VERSION__', old = store.get('ver', null); store.set('ver', V);
+  if (old && old !== V) window.__newVer = true; }
+function showVerBanner() { if (!window.__newVer) return; window.__newVer = false; const b = $('#verBanner'); b.textContent = tr('✨ עודכנה גרסה חדשה');
+  b.classList.add('show'); }
+// iPhone / iPad: Safari has no install prompt — show how to add to the home screen
+{ const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  if (ios && !standalone && location.hostname.endsWith('github.io')) $('#iosHint').style.display = 'block'; }
 window.__heart = { setVol, setBP, setTheme,  setPhase: p => { beatPhase = p; }, startSlowBeat, setElec, enterAlv, exitAlv, toggleFist, HU, get ALV() { return ALV; }, skip: () => { let i = 0; while (flight && i++ < 500) updateFlight(0.05); }, toggleIcon, S, enterRoom, startRide, setTool, camera, controls, mission, routes, meshes, setCutAmount };
 </script>
 </body>

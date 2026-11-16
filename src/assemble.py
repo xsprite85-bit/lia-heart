@@ -65,7 +65,11 @@ I.pop('display', None)
 t = t.replace('__I18N__', json.dumps(I, ensure_ascii=False, separators=(',', ':')))
 t = t.replace('/*__MODULES__*/', mods)
 t = t.replace('__FAVICON__', base64.b64encode(open('icons/favicon-48.png','rb').read()).decode())
+if base.startswith('./lib'):   # GitHub site: iOS uses a real file for the home-screen icon
+    t = t.replace('data:image/png;base64,__APPLEICON__', 'icons/apple-touch-icon.png')
 t = t.replace('__APPLEICON__', base64.b64encode(open('icons/apple-touch-icon.png','rb').read()).decode())
+import datetime
+t = t.replace('__VERSION__', datetime.datetime.now().strftime('%Y%m%d%H%M'))
 t = t.replace('__LOGO_SVG__', base64.b64encode(open('logo.svg','rb').read()).decode())
 t = t.replace('__THREE__', base).replace('__DATA__', json.dumps(d, separators=(',', ':'))).replace('__GLB__', base64.b64encode(open('heart_mo.glb', 'rb').read()).decode())
 open(out, 'w', encoding='utf-8').write(t)
